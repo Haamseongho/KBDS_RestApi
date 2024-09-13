@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp">
+
+    <ImageView
+        android:id="@+id/imgCollectionArrow1"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/baseline_arrow_drop_up_24"
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/imgCollectionArrow2"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/baseline_arrow_drop_down_24"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtCollection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:maxEms="20"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imgCollectionArrow1"
+        app:layout_constraintStart_toEndOf="@+id/imgCollectionArrow1"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Collection 1" />
+
+    <TextView
+        android:id="@+id/txtRequest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:textColor="@color/view_border_color"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/imgCollectionArrow1"
+        app:layout_constraintStart_toEndOf="@+id/imgCollectionArrow1"
+        app:layout_constraintTop_toBottomOf="@+id/txtCollection"
+        tools:text="0 request" />
+
+    <ImageView
+        android:id="@+id/imgMenuCollection"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/baseline_arrow_right_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

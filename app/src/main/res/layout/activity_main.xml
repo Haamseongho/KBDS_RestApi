@@ -7,13 +7,27 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/mainViewPager"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="10dp"
+        app:layout_constraintBottom_toTopOf="@+id/mainTabLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/mainTabLayout"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:tabIconTint="@color/tab_icon_color"
+        app:tabTextColor="@color/tab_text_color"
+        app:tabSelectedTextColor="@color/tab_selected_text_color"
+        app:tabGravity="fill"
+        app:tabMode="fixed" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

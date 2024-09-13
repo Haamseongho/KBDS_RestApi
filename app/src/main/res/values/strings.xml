@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">RestApi</string>
+    <string name="main_tab_1">Collection</string>
+    <string name="main_tab_2">API</string>
+    <string name="main_tab_3">History</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

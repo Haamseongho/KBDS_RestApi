@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/tab_collection"
+        android:icon="@drawable/baseline_account_circle_24"
+        android:title="@string/main_tab_1">Collections</item>
+
+    <item android:id="@+id/tab_api"
+        android:icon="@drawable/baseline_account_circle_24"
+        android:title="@string/main_tab_2">API</item>
+
+    <item android:id="@+id/tab_history"
+        android:icon="@drawable/baseline_account_circle_24"
+        android:title="@string/main_tab_3">History</item>
+</menu>

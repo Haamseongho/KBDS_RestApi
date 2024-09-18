@@ -33,6 +33,7 @@
             android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
+            android:text="@string/new_collection"
             app:layout_constraintBottom_toBottomOf="@+id/imgNewCollection"
             app:layout_constraintStart_toEndOf="@+id/imgNewCollection"
             app:layout_constraintTop_toTopOf="parent"
@@ -50,7 +51,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/collectionRecyclerView"
         app:layout_constraintTop_toBottomOf="@+id/viewBorder"
-        app:layout_constraintBottom_toBottomOf="parent¬"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_width="0dp"

@@ -3,7 +3,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="tab_icon_color">#008EFF</color>
-    <color name="tab_text_color">#FFFFFF</color>
+    <color name="tab_text_color">#2196F3</color>
     <color name="tab_selected_text_color">#000000</color>
     <color name="view_border_color">#878686</color>
 </resources>

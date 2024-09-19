@@ -1,16 +1,19 @@
 package com.kbds.unit.project.collections.adapter
 
+import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.kbds.unit.project.R
 import com.kbds.unit.project.collections.model.ChildReqItem
 import com.kbds.unit.project.collections.model.CollectionItem
 import com.kbds.unit.project.database.AppDatabase
@@ -67,6 +70,8 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
             getRequestData(position)
             binding.txtCollection.text = item.title
             binding.txtRequest.text = item.requestCount.toString().plus("request")
+
+            // 열었을 때 재조회
             binding.imgCollectionArrow1.setOnClickListener {
                 binding.imgCollectionArrow1.isVisible = false
                 binding.imgCollectionArrow1.visibility = View.INVISIBLE
@@ -74,6 +79,7 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
                 binding.imgCollectionArrow2.visibility = View.VISIBLE
                 binding.childRecyclerView.visibility = View.VISIBLE
                 binding.childRecyclerView.isVisible = true
+                getRequestData(position)
             }
 
             binding.imgCollectionArrow2.setOnClickListener {
@@ -145,6 +151,7 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
                         if (dlgSubBindingView.alertEditTextCollection.text.toString() !== "" && dlgSubBindingView.alertEditTextCollection.text.isNotEmpty()
                             && dlgSubBindingView.addRequestType.text.toString() !== "" && dlgSubBindingView.addRequestType.text.isNotEmpty()
                         ) {
+
                             addRequest(
                                 dlgSubBindingView.alertEditTextCollection.text.toString(),
                                 dlgSubBindingView.addRequestType.text.toString(),
@@ -202,10 +209,13 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
         // d이부분 좀 더 해야함
         private fun deleteRequest(position: Int) {
             if (position != RecyclerView.NO_POSITION) {
-                var item = currentList[position]
+                val item = currentList[position]
                 CoroutineScope(Dispatchers.IO).launch {
                     AppDatabase.getInstance(binding.root.context)?.collectionDao()
                         ?.deleteById(id = item.id)
+                    // Collection이 삭제되면 그거에 맞은 키로 비교해서 Request도 제거하기
+                    AppDatabase.getInstance(binding.root.context)?.requestDao()
+                        ?.deleteByCollectionId(id = item.cId)
 
                     val collectionList =
                         AppDatabase.getInstance(binding.root.context)?.collectionDao()
@@ -222,33 +232,11 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
             }
         }
 
-        private fun addRequest(title: String, type: String, position: Int) {
+        private fun addRequest(curTitle: String, curType: String, position: Int) {
             if (position != RecyclerView.NO_POSITION) {
                 val item = currentList[position]
                 val cId = item.cId
                 val id = item.id
-                var size = 0
-                CoroutineScope(Dispatchers.IO).launch {
-                    val collectionWithRequests =
-                        AppDatabase.getInstance(binding.root.context)?.collectionDao()
-                            ?.getCollectionWithRequests(collectionId = cId)
-
-                    withContext(Dispatchers.Main) {
-                        val requestItems = collectionWithRequests?.requestList
-                        size = requestItems?.size ?: 0
-                    }
-
-                    AppDatabase.getInstance(binding.root.context)?.collectionDao()
-                        ?.updateCollectionWithRequests2(
-                            CollectionItem(cId, id, title, size),
-                            RequestItem(
-                                collectionId = cId,
-                                type = type,
-                                title = title
-                            )
-                        )
-                }
-
 
                 // 추가된 Request 다시 조회 후 보여주기
                 CoroutineScope(Dispatchers.IO).launch {
@@ -256,23 +244,56 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
                         AppDatabase.getInstance(binding.root.context)?.collectionDao()
                             ?.getCollectionWithRequests(collectionId = cId)
 
-                    // 더하는건 이미 실행되고 하는 것이기 때문에 0보다 무조건 클 수 밖에 없음
-                    withContext(Dispatchers.Main) {
-                        val requestItemList = mutableListOf<ChildReqItem>()
-                        // 추가된 것을 넣어주기
-                        for (reqItemList in childRequestItem!!.requestList) {
-                            print(reqItemList.collectionId)
-                            requestItemList.add(
-                                ChildReqItem(
-                                    UUID.randomUUID().toString(),
-                                    reqItemList.reqId,
-                                    reqItemList.type,
-                                    reqItemList.title
+                    val requestItemList = mutableListOf<ChildReqItem>()
+
+                    // 추가한 것 리스트에 넣어주기
+                    requestItemList.add(
+                        ChildReqItem(
+                            collectionId = cId,
+                            type = curType,
+                            title = curTitle
+                        )
+                    )
+
+                    // RequestItem 쪽에다가 추가된 것들만 넣어주기
+                    for (itemList in requestItemList) {
+                        AppDatabase.getInstance(binding.root.context)?.requestDao()
+                            ?.insertOrUpdateReqItem(
+                                RequestItem(
+                                    collectionId = itemList.collectionId,
+                                    type = itemList.type,
+                                    title = itemList.title
                                 )
                             )
-                        }
-                        Log.d("ChildReqAdapter2323", "Request Item List Size: ${requestItemList.size}")
+                    }
+                    // 추가된 것 먼저 넣어준 다음에 기존꺼를 다시 조회해서 넣어주고 리스트 구성
+                    for (reqItemList in childRequestItem!!.requestList) {
+                        Log.e(
+                            "reqItemList",
+                            reqItemList.collectionId.toString().plus("///")
+                                .plus(reqItemList.reqId.toString())
+                        )
+                        requestItemList.add(
+                            ChildReqItem(
+                                collectionId = reqItemList.collectionId,
+                                type = reqItemList.type,
+                                title = reqItemList.title
+                            )
+                        )
+                    }
+                    // 구성된 리스트로 사이즈 재조정
+                    val size = requestItemList.size
+                    AppDatabase.getInstance(binding.root.context)?.collectionDao()
+                        ?.updateRequestCount(size = size, collectionId = cId)
+                    // 사이즈 변경 후 재조회해서 submitList에 넣어주기
+                    val reCollection =
+                        AppDatabase.getInstance(binding.root.context)?.collectionDao()
+                            ?.getAll()
 
+                    // 화면 반영용은 Main 스레드에서 넣어줄 것
+                    withContext(Dispatchers.Main) {
+                        submitList(reCollection)
+                        // cId를 토대로 구한 리스트 이므로 그대로 넣어줘서 갱신하기
                         childReqAdapter!!.submitList(requestItemList)
                     }
                 }
@@ -304,6 +325,8 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
         // Collection 안에 Request 가져오기
         private fun getRequestData(position: Int) {
             val item = currentList[position]
+            val cId = item.cId
+            val id = item.id
             // 추가된 Request 다시 조회 후 보여주기
             CoroutineScope(Dispatchers.IO).launch {
                 val childRequestItem =
@@ -311,20 +334,18 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
                         ?.getCollectionWithRequests(collectionId = item.cId)
 
                 if (childRequestItem?.requestList?.size != 0 && childRequestItem?.requestList!!.isNotEmpty()) {
-                    withContext(Dispatchers.Main) {
-                        val requestItemList = mutableListOf<ChildReqItem>()
-                        for (reqItemList in childRequestItem!!.requestList) {
-                            requestItemList.add(
-                                ChildReqItem(
-                                    UUID.randomUUID().toString(),
-                                    reqItemList.reqId,
-                                    reqItemList.type,
-                                    reqItemList.title
-                                )
+                    val requestItemList = mutableListOf<ChildReqItem>()
+                    for (reqItemList in childRequestItem.requestList) {
+                        requestItemList.add(
+                            ChildReqItem(
+                                collectionId = reqItemList.collectionId,
+                                type = reqItemList.type,
+                                title = reqItemList.title
                             )
-                        }
-                        Log.d("ChildReqAdapter2323!", "Request Item List Size: ${requestItemList.size}")
-
+                        )
+                    }
+                    // Main Thread
+                    withContext(Dispatchers.Main) {
                         childReqAdapter!!.submitList(requestItemList)
                     }
                 }

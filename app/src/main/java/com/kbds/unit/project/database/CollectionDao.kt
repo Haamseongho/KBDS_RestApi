@@ -30,9 +30,6 @@ interface CollectionDao {
     @Query("UPDATE CollectionTB SET title = :title WHERE id = :id")
     fun renameCollection(id: String, title: String)
 
-    @Transaction
-    @Query("SELECT * FROM CollectionTB")
-    fun getCollectionsWithRequests(): List<CollectionWithRequests>
 
     // 부모엔터티 삽입
     @Insert
@@ -92,4 +89,7 @@ interface CollectionDao {
     @Transaction
     @Query("SELECT * FROM COLLECTIONTB WHERE cId = :collectionId")
     suspend fun getCollectionWithRequests(collectionId: Int): CollectionWithRequests
+
+    @Query("UPDATE CollectionTB SET requestCount = :size WHERE cId = :collectionId")
+    suspend fun updateRequestCount(size: Int, collectionId: Int)
 }

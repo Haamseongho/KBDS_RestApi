@@ -53,9 +53,11 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.play.services.location)
+    implementation(libs.androidx.room.common)
+    implementation ("androidx.viewpager2:viewpager2:1.0.0")
 
     // Room DB
-    var roomVersion = "2.6.1"
+    val roomVersion = "2.6.1"
     implementation("androidx.room:room-runtime:$roomVersion")
     annotationProcessor("androidx.room:room-compiler:$roomVersion")
     kapt("androidx.room:room-compiler:$roomVersion")

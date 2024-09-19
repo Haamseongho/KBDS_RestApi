@@ -6,4 +6,9 @@
     <color name="tab_text_color">#2196F3</color>
     <color name="tab_selected_text_color">#000000</color>
     <color name="view_border_color">#878686</color>
+    <color name="type_get">#39A33D</color>
+    <color name="type_post">#FF9800</color>
+    <color name="type_put">#008EFF</color>
+    <color name="type_delete">#5C00FF</color>
+    <color name="type_else">#FF0057</color>
 </resources>

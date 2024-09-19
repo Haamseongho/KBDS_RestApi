@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.viewpager2.widget.ViewPager2
 import com.kbds.unit.project.R
+import com.kbds.unit.project.ViewPagerAdapter
 import com.kbds.unit.project.collections.adapter.CollectionAdapter
 import com.kbds.unit.project.collections.model.CollectionItem
 import com.kbds.unit.project.database.AppDatabase
@@ -37,6 +39,7 @@ class CollectionFragment : Fragment() {
     private lateinit var binding: FragmentCollectionBinding // 현 Fragment
     private lateinit var dialogViewBinding: AlertBoxForCollectionBinding // AlertBox
     private var size: Int? = 0
+    private val viewPager: ViewPager2? = null // mainViewPager 가져오기 위함
 
     private var collectionAdapter: CollectionAdapter? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,14 +79,13 @@ class CollectionFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
         }
 
-
         CoroutineScope(Dispatchers.IO).launch {
             val getCollection = context?.let { AppDatabase.getInstance(it)?.collectionDao()?.getAll() }
             withContext(Dispatchers.Main) {
                 collectionAdapter!!.submitList(getCollection)
             }
             if(getCollection?.isNotEmpty() == true || !getCollection.isNullOrEmpty()){
-                size = getCollection?.size // size 가지고 넣어주기
+                size = getCollection.size // size 가지고 넣어주기
             }
 
         }

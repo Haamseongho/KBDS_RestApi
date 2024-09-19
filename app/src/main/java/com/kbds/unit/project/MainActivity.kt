@@ -5,8 +5,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.kbds.unit.project.api.ApiFragment
 import com.kbds.unit.project.collections.CollectionFragment
@@ -50,7 +48,7 @@ class MainActivity : AppCompatActivity() {
                 .setText(R.string.main_tab_3)
         )
 
-        viewPagerAdapter = ViewPagerAdapter(this)
+        viewPagerAdapter = ViewPagerAdapter(this, binding.mainViewPager)
         binding.mainViewPager.adapter = viewPagerAdapter
 
 
@@ -79,4 +77,5 @@ class MainActivity : AppCompatActivity() {
             }
         }.attach()
     }
+
 }

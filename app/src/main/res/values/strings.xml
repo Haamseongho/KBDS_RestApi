@@ -6,4 +6,7 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="new_collection">New Collection</string>
+    <string name="apiSend">SEND</string>
+    <string name="apiResponse">Hit Send to get a reponse</string>
+    <string name="apiResponseLabel">Response</string>
 </resources>

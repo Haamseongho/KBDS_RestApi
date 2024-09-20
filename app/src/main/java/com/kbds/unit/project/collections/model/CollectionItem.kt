@@ -12,7 +12,7 @@ data class CollectionItem(
     var id: String = "", // Collections 탭에서 아이디
     val title: String,
     val requestCount: Int,
-
+    var isExpanded: Boolean = false  // 추가
 )
 
 data class CollectionWithRequests(

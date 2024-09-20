@@ -1,17 +1,23 @@
 package com.kbds.unit.project.collections
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
+import com.kbds.unit.project.MainActivity
 import com.kbds.unit.project.R
 import com.kbds.unit.project.ViewPagerAdapter
+import com.kbds.unit.project.api.ApiFragment
+import com.kbds.unit.project.collections.adapter.ChildReqAdapterListener
 import com.kbds.unit.project.collections.adapter.CollectionAdapter
+import com.kbds.unit.project.collections.model.ChildReqItem
 import com.kbds.unit.project.collections.model.CollectionItem
 import com.kbds.unit.project.database.AppDatabase
 import com.kbds.unit.project.database.model.RequestItem
@@ -32,14 +38,14 @@ private const val ARG_PARAM2 = "param2"
  * Use the [CollectionFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class CollectionFragment : Fragment() {
+class CollectionFragment : Fragment(), ChildReqAdapterListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
     private lateinit var binding: FragmentCollectionBinding // 현 Fragment
     private lateinit var dialogViewBinding: AlertBoxForCollectionBinding // AlertBox
     private var size: Int? = 0
-    private val viewPager: ViewPager2? = null // mainViewPager 가져오기 위함
+    private var viewPager: ViewPager2? = null // mainViewPager 가져오기 위함
 
     private var collectionAdapter: CollectionAdapter? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,11 +64,12 @@ class CollectionFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_collection, container, false)
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FragmentCollectionBinding.bind(view)
-
+        viewPager = requireActivity().findViewById(R.id.mainViewPager)
 
         // New Collection Popup
         binding.txtNewCollection.setOnClickListener {
@@ -72,7 +79,7 @@ class CollectionFragment : Fragment() {
         binding.imgNewCollection.setOnClickListener {
             createCollection()
         }
-        collectionAdapter = CollectionAdapter()
+        collectionAdapter = CollectionAdapter(this)
 
         binding.collectionRecyclerView.apply {
             adapter = collectionAdapter
@@ -162,5 +169,19 @@ class CollectionFragment : Fragment() {
                     putString(ARG_PARAM2, param2)
                 }
             }
+    }
+
+    override fun onChildItemClicked(data: ChildReqItem) {
+        Log.e("CollectionFragment_childItemClicked", "clicked!@!@!!!".plus(data.toString()))
+        val bundle = Bundle().apply {
+            putInt("COLLECTION_ID", data.collectionId)
+            putString("TYPE", data.type)
+            putString("TITLE", data.title)
+            putString("URL", data.url ?: "")
+        }
+        ApiFragment().apply {
+            arguments = bundle
+        }
+        viewPager!!.currentItem = 1
     }
 }

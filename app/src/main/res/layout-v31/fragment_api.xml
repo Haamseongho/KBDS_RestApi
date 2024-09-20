@@ -84,12 +84,13 @@
                 android:layout_weight="1"
                 android:orientation="horizontal">
 
-                <TextView
+                <CheckBox
                     android:layout_width="0dp"
                     android:layout_height="50dp"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="Check" />
+                    android:checked="false"
+                    android:clickable="false"
+                    android:allowClickWhenDisabled="false"/>
 
                 <TextView
                     android:layout_width="0dp"
@@ -107,28 +108,6 @@
                     android:gravity="center"
                     android:text="Value" />
             </LinearLayout>
-        </TableRow>
-
-        <TableRow>
-            <CheckBox
-                android:id="@+id/apiCheckBox1"
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1" />
-
-            <EditText
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_gravity="start"
-                android:layout_weight="2"
-                android:gravity="center" />
-
-            <EditText
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_gravity="start"
-                android:layout_weight="5"
-                android:gravity="center" />
         </TableRow>
     </TableLayout>
 

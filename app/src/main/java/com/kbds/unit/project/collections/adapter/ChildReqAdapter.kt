@@ -1,5 +1,6 @@
 package com.kbds.unit.project.collections.adapter
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -27,13 +28,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class ChildReqAdapter(
+    private val listener: ChildReqAdapterListener
 ) : ListAdapter<ChildReqItem, ChildReqAdapter.ViewHolder>(diff) {
-
-    val collectionAdapter = CollectionAdapter()  // 전체 CollectionAdapter에도 반영
 
     inner class ViewHolder(private val binding: ChildRequestItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: ChildReqItem) {
+
+            // listener
+            binding.root.setOnClickListener {
+                listener.onChildItemClicked(item)
+            }
+
             val currentPos = adapterPosition
 
             binding.childReqTitle.setOnClickListener {
@@ -253,6 +259,11 @@ class ChildReqAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        Log.e("ChildAdapter_Position", position.toString());
         holder.bind(currentList[position])
     }
+}
+
+interface ChildReqAdapterListener {
+    fun onChildItemClicked(data: ChildReqItem)
 }

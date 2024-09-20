@@ -1,5 +1,6 @@
 package com.kbds.unit.project.collections.adapter
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.core.view.NestedScrollingChild
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -27,9 +29,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
-class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHolder>(diff) {
+class CollectionAdapter(private val listener: ChildReqAdapterListener) : ListAdapter<CollectionItem, CollectionAdapter.ViewHolder>(diff) {
 
-    private var childReqAdapter: ChildReqAdapter? = null  // Request 추가용 어댑터
 
     companion object {
         val diff = object : DiffUtil.ItemCallback<CollectionItem>() {
@@ -52,46 +53,55 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
 
     inner class ViewHolder(private val binding: ItemCollectionBinding) :
         RecyclerView.ViewHolder(binding.root) {
+        private val childReqAdapter = ChildReqAdapter(listener) // Adapter 관리
+
+        init {
+            binding.childRecyclerView.apply {
+                layoutManager = LinearLayoutManager(binding.root.context)
+                adapter = childReqAdapter
+                setHasFixedSize(true)
+                isNestedScrollingEnabled = false
+                setRecycledViewPool(RecyclerView.RecycledViewPool())  // ViewPool 설정
+            }
+        }
+
+        @SuppressLint("NotifyDataSetChanged")
         fun bind(item: CollectionItem) {
 
             val position = adapterPosition
             Log.e("CollectionAdapter_position", "Current Position: $position")
             // Collection 안에 Request도 ListAdapter를 통해 붙이기
-            childReqAdapter = ChildReqAdapter() // Adapter 관리
-            binding.childRecyclerView.apply {
-                layoutManager = LinearLayoutManager(binding.root.context)
-                adapter = childReqAdapter
-            }
+
+            val linearLayoutManager = LinearLayoutManager(binding.root.context, LinearLayoutManager.VERTICAL, false)
+
+
+            // 처음 바인딩 될 때 request 값 있으면 가져오기
+            getRequestData(position)
+
             // 처음엔 보이지 않도록 할 것
             binding.childRecyclerView.visibility = View.INVISIBLE
             binding.childRecyclerView.isVisible = false
 
-            // 처음 바인딩 될 때 request 값 있으면 가져오기
-            getRequestData(position)
             binding.txtCollection.text = item.title
-            binding.txtRequest.text = item.requestCount.toString().plus("request")
+            binding.txtRequest.text = item.requestCount.toString().plus(" request")
 
-            // 열었을 때 재조회
+            // 부모 아이템의 자식 리사이클러뷰 상태 유지
+            binding.childRecyclerView.visibility = if (item.isExpanded) View.VISIBLE else View.GONE
+            binding.imgCollectionArrow1.isVisible = !item.isExpanded
+            binding.imgCollectionArrow2.isVisible = item.isExpanded
+
+            // 화살표 클릭 시 자식 아이템 보이기/숨기기
             binding.imgCollectionArrow1.setOnClickListener {
-                binding.imgCollectionArrow1.isVisible = false
-                binding.imgCollectionArrow1.visibility = View.INVISIBLE
-                binding.imgCollectionArrow2.isVisible = true
-                binding.imgCollectionArrow2.visibility = View.VISIBLE
-                binding.childRecyclerView.visibility = View.VISIBLE
-                binding.childRecyclerView.isVisible = true
-                getRequestData(position)
+                item.isExpanded = true
+                notifyItemChanged(position)
             }
 
             binding.imgCollectionArrow2.setOnClickListener {
-                binding.imgCollectionArrow1.isVisible = true
-                binding.imgCollectionArrow1.visibility = View.VISIBLE
-                binding.imgCollectionArrow2.isVisible = false
-                binding.imgCollectionArrow2.visibility = View.INVISIBLE
-                binding.childRecyclerView.visibility = View.INVISIBLE
-                binding.childRecyclerView.isVisible = false
+                item.isExpanded = false
+                notifyItemChanged(position)
             }
 
-            var pos = adapterPosition
+
             // 선택 팝업 띄우기 (Rename, Add Folder, Add Request, Delete
             binding.imgMenuCollection.setOnClickListener {
                 Log.e("CollectionAdapter333", position.toString())
@@ -294,7 +304,7 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
                     withContext(Dispatchers.Main) {
                         submitList(reCollection)
                         // cId를 토대로 구한 리스트 이므로 그대로 넣어줘서 갱신하기
-                        childReqAdapter!!.submitList(requestItemList)
+                        childReqAdapter.submitList(requestItemList)
                     }
                 }
             }
@@ -323,31 +333,24 @@ class CollectionAdapter() : ListAdapter<CollectionItem, CollectionAdapter.ViewHo
         }
 
         // Collection 안에 Request 가져오기
+        // 자식 데이터 가져오기
         private fun getRequestData(position: Int) {
             val item = currentList[position]
-            val cId = item.cId
-            val id = item.id
-            // 추가된 Request 다시 조회 후 보여주기
             CoroutineScope(Dispatchers.IO).launch {
                 val childRequestItem =
                     AppDatabase.getInstance(binding.root.context)?.collectionDao()
                         ?.getCollectionWithRequests(collectionId = item.cId)
 
-                if (childRequestItem?.requestList?.size != 0 && childRequestItem?.requestList!!.isNotEmpty()) {
-                    val requestItemList = mutableListOf<ChildReqItem>()
-                    for (reqItemList in childRequestItem.requestList) {
-                        requestItemList.add(
-                            ChildReqItem(
-                                collectionId = reqItemList.collectionId,
-                                type = reqItemList.type,
-                                title = reqItemList.title
-                            )
-                        )
-                    }
-                    // Main Thread
-                    withContext(Dispatchers.Main) {
-                        childReqAdapter!!.submitList(requestItemList)
-                    }
+                val requestItemList = childRequestItem?.requestList?.map { reqItem ->
+                    ChildReqItem(
+                        collectionId = reqItem.collectionId,
+                        type = reqItem.type,
+                        title = reqItem.title
+                    )
+                } ?: emptyList()
+
+                withContext(Dispatchers.Main) {
+                    childReqAdapter.submitList(requestItemList)
                 }
             }
         }

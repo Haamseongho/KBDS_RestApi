@@ -29,7 +29,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
 
-class CollectionAdapter(private val listener: ChildReqAdapterListener) : ListAdapter<CollectionItem, CollectionAdapter.ViewHolder>(diff) {
+class CollectionAdapter(private val listener: ChildReqAdapterListener) :
+    ListAdapter<CollectionItem, CollectionAdapter.ViewHolder>(diff) {
 
 
     companion object {
@@ -54,13 +55,15 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) : ListAda
     inner class ViewHolder(private val binding: ItemCollectionBinding) :
         RecyclerView.ViewHolder(binding.root) {
         private val childReqAdapter = ChildReqAdapter(listener) // Adapter 관리
+        val linearLayoutManager =
+            LinearLayoutManager(binding.root.context, LinearLayoutManager.VERTICAL, false)
 
         init {
             binding.childRecyclerView.apply {
-                layoutManager = LinearLayoutManager(binding.root.context)
+                layoutManager = linearLayoutManager
                 adapter = childReqAdapter
                 setHasFixedSize(true)
-                isNestedScrollingEnabled = false
+
                 setRecycledViewPool(RecyclerView.RecycledViewPool())  // ViewPool 설정
             }
         }
@@ -71,15 +74,11 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) : ListAda
             val position = adapterPosition
             Log.e("CollectionAdapter_position", "Current Position: $position")
             // Collection 안에 Request도 ListAdapter를 통해 붙이기
-
-            val linearLayoutManager = LinearLayoutManager(binding.root.context, LinearLayoutManager.VERTICAL, false)
-
-
             // 처음 바인딩 될 때 request 값 있으면 가져오기
             getRequestData(position)
 
             // 처음엔 보이지 않도록 할 것
-            binding.childRecyclerView.visibility = View.INVISIBLE
+            binding.childRecyclerView.visibility = View.GONE
             binding.childRecyclerView.isVisible = false
 
             binding.txtCollection.text = item.title
@@ -93,12 +92,18 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) : ListAda
             // 화살표 클릭 시 자식 아이템 보이기/숨기기
             binding.imgCollectionArrow1.setOnClickListener {
                 item.isExpanded = true
-                notifyItemChanged(position)
+                binding.childRecyclerView.visibility = View.VISIBLE
+                binding.imgCollectionArrow1.isVisible = false
+                binding.imgCollectionArrow2.isVisible = true
+               // notifyItemChanged(position)
             }
 
             binding.imgCollectionArrow2.setOnClickListener {
                 item.isExpanded = false
-                notifyItemChanged(position)
+                binding.childRecyclerView.visibility = View.GONE // 자식 RecyclerView 숨기기
+                binding.imgCollectionArrow1.isVisible = true          // 화살표1 보이기
+                binding.imgCollectionArrow2.isVisible = false         // 화살표2 숨기기
+              //  notifyItemChanged(position)
             }
 
 

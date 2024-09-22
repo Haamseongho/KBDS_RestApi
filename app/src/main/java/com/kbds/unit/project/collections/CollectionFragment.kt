@@ -1,5 +1,7 @@
 package com.kbds.unit.project.collections
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -9,9 +11,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.kbds.unit.project.MainActivity
+import com.kbds.unit.project.MyFragment
 import com.kbds.unit.project.R
 import com.kbds.unit.project.ViewPagerAdapter
 import com.kbds.unit.project.api.ApiFragment
@@ -46,6 +50,7 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
     private lateinit var dialogViewBinding: AlertBoxForCollectionBinding // AlertBox
     private var size: Int? = 0
     private var viewPager: ViewPager2? = null // mainViewPager 가져오기 위함
+    private var mActivity: MainActivity? = null
 
     private var collectionAdapter: CollectionAdapter? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +75,7 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
 
         binding = FragmentCollectionBinding.bind(view)
         viewPager = requireActivity().findViewById(R.id.mainViewPager)
-
+        mActivity = MainActivity()
         // New Collection Popup
         binding.txtNewCollection.setOnClickListener {
             createCollection()
@@ -81,9 +86,10 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
         }
         collectionAdapter = CollectionAdapter(this)
 
+        val linearLayoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         binding.collectionRecyclerView.apply {
             adapter = collectionAdapter
-            layoutManager = LinearLayoutManager(context)
+            layoutManager = linearLayoutManager
         }
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -171,17 +177,20 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
             }
     }
 
-    override fun onChildItemClicked(data: ChildReqItem) {
+    override fun onChildItemClicked(data: ChildReqItem) {// 메서드 호출 여부 확인을 위한 로그
+        Log.d("CollectionFragment", "onChildItemClicked called")
+
         Log.e("CollectionFragment_childItemClicked", "clicked!@!@!!!".plus(data.toString()))
-        val bundle = Bundle().apply {
+
+        val sharedPreferences = binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.apply {
             putInt("COLLECTION_ID", data.collectionId)
             putString("TYPE", data.type)
             putString("TITLE", data.title)
             putString("URL", data.url ?: "")
-        }
-        ApiFragment().apply {
-            arguments = bundle
-        }
-        viewPager!!.currentItem = 1
+        }.apply()
+
+        viewPager!!.setCurrentItem(1, true)
     }
 }

@@ -34,19 +34,19 @@ class ChildReqAdapter(
     inner class ViewHolder(private val binding: ChildRequestItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: ChildReqItem) {
-
-            // listener
+            Log.e("position!!!!!", adapterPosition.toString())
+            Log.e("ChildReqID", item.reqId.toString().plus("clicked"))
+            val item2 = currentList[adapterPosition]
+            Log.e("items@@@@@@", item2.toString())
             binding.root.setOnClickListener {
                 listener.onChildItemClicked(item)
             }
 
-            val currentPos = adapterPosition
-
             binding.childReqTitle.setOnClickListener {
-                moveToApiFragment(currentPos, item)
+                listener.onChildItemClicked(item)
             }
             binding.childReqType.setOnClickListener {
-                moveToApiFragment(currentPos, item)
+                listener.onChildItemClicked(item)
             }
             // childMenu
             val dialogView =
@@ -223,16 +223,6 @@ class ChildReqAdapter(
                     }
                 }
             }
-
-        }
-
-        private fun moveToApiFragment(currentPos: Int, item: ChildReqItem) {
-            // 현재 Request에 대한 정보를 보내야함
-            val bundle = Bundle()
-            bundle.putInt("reqId", item.reqId)
-            bundle.putString("title", item.title)
-            bundle.putString("type", item.type)
-            bundle.putInt("collectionId", item.collectionId)
 
         }
     }

@@ -9,20 +9,22 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.kbds.unit.project.collections.model.CollectionItem
 import com.kbds.unit.project.database.model.RequestItem
 
-@Database(entities = [RequestItem::class, CollectionItem::class], version = 4)
+
+@Database(entities = [RequestItem::class, CollectionItem::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun requestDao(): RequestDao
     abstract fun collectionDao(): CollectionDao
 
     companion object {
         private var INSTANCE: AppDatabase? = null
+
         fun getInstance(context: Context): AppDatabase? {
             if (INSTANCE == null) {
                 synchronized(AppDatabase::class.java) {
                     INSTANCE = Room.databaseBuilder(
                         context.applicationContext,
                         AppDatabase::class.java,
-                        "app-database.db"
+                        "app-database2.db"
                     ).build()
                 }
             }

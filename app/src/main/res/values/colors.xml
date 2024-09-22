@@ -11,4 +11,5 @@
     <color name="type_put">#008EFF</color>
     <color name="type_delete">#5C00FF</color>
     <color name="type_else">#FF0057</color>
+    <color name="checkbox_clicked">#8845FF</color>
 </resources>

@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="10dp">
+    android:layout_height="wrap_content">
 
     <ImageView
         android:id="@+id/imgCollectionArrow1"
@@ -24,6 +23,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <View
+        android:id="@+id/standardView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="50dp"
+        android:layout_height="50dp"/>
+
     <TextView
         android:id="@+id/txtCollection"
         android:layout_width="wrap_content"
@@ -31,9 +37,9 @@
         android:layout_marginStart="5dp"
         android:maxEms="20"
         android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imgCollectionArrow1"
-        app:layout_constraintStart_toEndOf="@+id/imgCollectionArrow1"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/standardView"
+        app:layout_constraintStart_toEndOf="@+id/standardView"
         tools:text="Collection 1" />
 
     <TextView
@@ -43,28 +49,36 @@
         android:layout_marginStart="5dp"
         android:textColor="@color/view_border_color"
         android:textSize="10sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imgCollectionArrow1"
-        app:layout_constraintStart_toEndOf="@+id/imgCollectionArrow1"
+        app:layout_constraintBottom_toBottomOf="@+id/standardView"
+        app:layout_constraintStart_toEndOf="@+id/standardView"
         app:layout_constraintTop_toBottomOf="@+id/txtCollection"
         tools:text="0 request" />
+
 
     <ImageView
         android:id="@+id/imgMenuCollection"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:src="@drawable/baseline_arrow_right_24"
-        app:layout_constraintBottom_toBottomOf="@+id/imgCollectionArrow1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/childViewBorder"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginTop="11dp"
+        android:background="@color/view_border_color"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imgMenuCollection" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/childRecyclerView"
         tools:listitem="@layout/child_request_item"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_marginTop="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtRequest"/>
+        app:layout_constraintTop_toBottomOf="@+id/childViewBorder"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

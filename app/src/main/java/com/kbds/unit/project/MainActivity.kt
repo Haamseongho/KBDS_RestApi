@@ -1,6 +1,7 @@
 package com.kbds.unit.project
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -13,7 +14,7 @@ import com.kbds.unit.project.history.HistoryFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private var viewPagerAdapter: ViewPagerAdapter? = null
+    var viewPagerAdapter: ViewPagerAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +50,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         viewPagerAdapter = ViewPagerAdapter(this, binding.mainViewPager)
+        viewPagerAdapter!!.notifyItemChanged(1)
         binding.mainViewPager.adapter = viewPagerAdapter
 
 
@@ -78,4 +80,8 @@ class MainActivity : AppCompatActivity() {
         }.attach()
     }
 
+    override fun onRestart() {
+        super.onRestart()
+        Log.e("MainActivity","HIHIH")
+    }
 }

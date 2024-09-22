@@ -1,140 +1,164 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".api.ApiFragment">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/apiTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="15dp"
-        android:textColor="@color/black"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="request1" />
-
-    <View
-        android:id="@+id/viewBorder"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginTop="20dp"
-        android:background="@color/view_border_color"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/apiTitle" />
+        android:layout_height="match_parent"
+        tools:context=".api.ApiFragment">
 
-    <androidx.appcompat.widget.AppCompatSpinner
-        android:id="@+id/apiSpinner"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="10dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewBorder" />
-    <!--android:theme="@style/api_spinner" -->
-    <EditText
-        android:id="@+id/apiUrlEditText"
-        android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginEnd="5dp"
-        app:layout_constraintEnd_toStartOf="@+id/apiBtnSend"
-        app:layout_constraintStart_toStartOf="@+id/apiSpinner"
-        app:layout_constraintTop_toBottomOf="@+id/apiSpinner" />
+        <TextView
+            android:id="@+id/apiTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="15dp"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="request1" />
 
-    <Button
-        android:id="@+id/apiBtnSend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="10dp"
-        android:text="@string/apiSend"
-        android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/apiUrlEditText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/apiUrlEditText" />
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/apiReqTabLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/apiUrlEditText" />
-
-    <TableLayout
-        android:id="@+id/apiTableLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/apiReqTabLayout">
-
-        <TableRow
-            android:id="@+id/headerRow"
+        <View
+            android:id="@+id/viewBorder"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="2dp"
+            android:layout_marginTop="20dp"
+            android:background="@color/view_border_color"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/apiTitle" />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="50dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
+        <androidx.appcompat.widget.AppCompatSpinner
+            android:id="@+id/apiSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginTop="10dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/viewBorder" />
+        <!--android:theme="@style/api_spinner" -->
+        <EditText
+            android:id="@+id/apiUrlEditText"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginEnd="5dp"
+            app:layout_constraintEnd_toStartOf="@+id/apiBtnSend"
+            app:layout_constraintStart_toStartOf="@+id/apiSpinner"
+            app:layout_constraintTop_toBottomOf="@+id/apiSpinner" />
 
-                <CheckBox
+        <Button
+            android:id="@+id/apiBtnSend"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="@string/apiSend"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="@+id/apiUrlEditText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/apiUrlEditText" />
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/apiReqTabLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/apiUrlEditText" />
+
+        <TableLayout
+            android:id="@+id/apiTableLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/apiReqTabLayout">
+
+            <TableRow
+                android:id="@+id/headerRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="50dp"
                     android:layout_weight="1"
-                    android:checked="false"
-                    android:clickable="false"
-                    android:allowClickWhenDisabled="false"/>
+                    android:orientation="horizontal">
 
-                <TextView
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="Check" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_gravity="start"
+                        android:layout_weight="2"
+                        android:gravity="center"
+                        android:text="Key" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_gravity="start"
+                        android:layout_weight="5"
+                        android:gravity="center"
+                        android:text="Value" />
+                </LinearLayout>
+            </TableRow>
+
+            <TableRow>
+
+                <CheckBox
+                    android:id="@+id/apiCheckBox1"
+                    android:layout_width="0dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="1" />
+
+                <EditText
                     android:layout_width="0dp"
                     android:layout_height="50dp"
                     android:layout_gravity="start"
                     android:layout_weight="2"
-                    android:gravity="center"
-                    android:text="Key" />
+                    android:gravity="center" />
 
-                <TextView
+                <EditText
                     android:layout_width="0dp"
                     android:layout_height="50dp"
                     android:layout_gravity="start"
                     android:layout_weight="5"
-                    android:gravity="center"
-                    android:text="Value" />
-            </LinearLayout>
-        </TableRow>
-    </TableLayout>
+                    android:gravity="center" />
+            </TableRow>
+        </TableLayout>
 
-    <TextView
-        android:id="@+id/apiResponseLabel"
-        android:layout_width="0dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="10dp"
-        android:background="#D8D6D6"
-        android:padding="10dp"
-        android:text="@string/apiResponseLabel"
-        android:textColor="@color/black"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/apiTableLayout" />
+        <TextView
+            android:id="@+id/apiResponseLabel"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="10dp"
+            android:background="#D8D6D6"
+            android:padding="10dp"
+            android:text="@string/apiResponseLabel"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/apiTableLayout" />
 
-    <TextView
-        android:id="@+id/apiResponseTextView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:hint="@string/apiResponse"
-        android:paddingStart="10dp"
-        android:paddingTop="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/apiResponseLabel" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/apiResponseTextView"
+            android:layout_width="match_parent"
+            android:layout_height="500dp"
+            android:hint="@string/apiResponse"
+            android:paddingStart="10dp"
+            android:paddingTop="10dp"
+            app:layout_constraintTop_toBottomOf="@id/apiResponseLabel" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

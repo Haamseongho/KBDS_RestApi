@@ -1,5 +1,6 @@
 package com.kbds.unit.project
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
@@ -50,7 +51,9 @@ class MainActivity : AppCompatActivity() {
         )
 
         viewPagerAdapter = ViewPagerAdapter(this, binding.mainViewPager)
-        viewPagerAdapter!!.notifyItemChanged(1)
+        val sharedPreferences = binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+
         binding.mainViewPager.adapter = viewPagerAdapter
 
 

@@ -2,12 +2,14 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/apiConstraintLayout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         tools:context=".api.ApiFragment">
 
         <TextView
@@ -122,6 +124,7 @@
                     android:layout_weight="1" />
 
                 <EditText
+                    android:id="@+id/apiKey1"
                     android:layout_width="0dp"
                     android:layout_height="50dp"
                     android:layout_gravity="start"
@@ -129,6 +132,7 @@
                     android:gravity="center" />
 
                 <EditText
+                    android:id="@+id/apiValue1"
                     android:layout_width="0dp"
                     android:layout_height="50dp"
                     android:layout_gravity="start"
@@ -160,5 +164,12 @@
             android:paddingStart="10dp"
             android:paddingTop="10dp"
             app:layout_constraintTop_toBottomOf="@id/apiResponseLabel" />
+
+        <EditText
+            android:id="@+id/apiReqBodyEditText"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:visibility="invisible"
+            app:layout_constraintTop_toBottomOf="@+id/apiReqTabLayout" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

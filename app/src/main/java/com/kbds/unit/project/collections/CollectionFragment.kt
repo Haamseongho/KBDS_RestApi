@@ -184,6 +184,10 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
 
         val sharedPreferences = binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
+        Log.e("editorTest", sharedPreferences.getInt("COLLECTION_ID", 0).toString())
+        Log.e("editorTest", sharedPreferences.getString("TYPE", "").toString())
+        Log.e("editorTest", sharedPreferences.getString("TITLE", "").toString())
+        Log.e("editorTest", sharedPreferences.getString("URL", "").toString())
         editor.apply {
             putInt("COLLECTION_ID", data.collectionId)
             putString("TYPE", data.type)

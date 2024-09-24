@@ -3,6 +3,8 @@ package com.kbds.unit.project.api
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.Gravity
 import androidx.fragment.app.Fragment
@@ -24,7 +26,10 @@ import androidx.core.view.get
 import androidx.core.view.isVisible
 import androidx.room.util.query
 import com.google.android.material.tabs.TabLayout
+import com.google.gson.Gson
 import com.kbds.unit.project.R
+import com.kbds.unit.project.database.AppDatabase
+import com.kbds.unit.project.database.model.RequestItem
 import com.kbds.unit.project.databinding.FragmentApiBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,11 +38,13 @@ import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
@@ -59,6 +66,7 @@ class ApiFragment : Fragment() {
     private var isFirstOpen: Boolean = true
     val client = OkHttpClient()
     var selectedItem = ""
+    var prevTitle = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,12 +102,20 @@ class ApiFragment : Fragment() {
         val sharedPreferences =
             binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
 
+        val collectionId = sharedPreferences.getInt("COLLECTION_ID", -1)
         val title = sharedPreferences.getString("TITLE", "")
-        binding.apiTitle.text = title
+
+        prevTitle = title ?: ""
+        binding.apiTitle.setText(title)
         val type = sharedPreferences.getString("TYPE", "GET")
 
+        val url = sharedPreferences.getString("URL", "")
         val defaultSelectionIndex = itemList.indexOf(type)
+
+        binding.apiUrlEditText.setText(url)
+
         spinner.setSelection(defaultSelectionIndex)
+        Log.e("APIFragment22", "CollectionID: $collectionId , Type: $type , Title: $title, URL: $url")
     }
 
     @SuppressLint("CommitPrefEdits")
@@ -113,7 +129,7 @@ class ApiFragment : Fragment() {
         val sharedPreferences =
             binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
 
-        val collectionId = sharedPreferences.getInt("COLLECTION_ID", 0)
+        val collectionId = sharedPreferences.getInt("COLLECTION_ID", -1)
         val type = sharedPreferences.getString("TYPE", "GET")
         val title = sharedPreferences.getString("TITLE", "")
         val url = sharedPreferences.getString("URL", "")
@@ -136,8 +152,11 @@ class ApiFragment : Fragment() {
         binding.apiReqTabLayout.addTab(
             binding.apiReqTabLayout.newTab().setText("Body")
         )
+        // 이전꺼 가지고있기
+        prevTitle = title ?: ""
 
-        binding.apiTitle.text = title
+
+        binding.apiTitle.setText(title)
         val defaultSelectionIndex = itemList.indexOf(type)
         spinner.setSelection(defaultSelectionIndex)
 
@@ -160,23 +179,42 @@ class ApiFragment : Fragment() {
         }
         val apiReqTabLayout = binding.apiReqTabLayout
         val selectedTabPosition = apiReqTabLayout.selectedTabPosition
+        binding.apiReqBodyEditText.isSingleLine = false
+        binding.apiReqBodyEditText.maxLines = Integer.MAX_VALUE
+        binding.apiReqBodyEditText.isVerticalScrollBarEnabled = true
+        binding.apiReqBodyEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                Log.i("apiBody", "beforeTextChanged")
+            }
 
-        // constraintLayout
-        val apiConstraintLayout = binding.apiConstraintLayout
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                Log.i("apiBody", "onTextChanged")
+            }
 
+            // 변화에 따라 입력수 * 라인길이 = 증가
+            override fun afterTextChanged(s: Editable?) {
+                val lineCount = binding.apiReqBodyEditText.lineCount
+                if (lineCount > 0) {
+                    binding.apiReqBodyEditText.layoutParams.height =
+                        binding.apiReqBodyEditText.lineHeight * lineCount
+                }
+            }
+
+        })
+        // 제약 조건 적용 후 뷰의 가시성 설정
         if (selectedTabPosition == 0 || selectedTabPosition == 1) {
             binding.apiTableLayout.visibility = View.VISIBLE
             binding.apiTableLayout.isVisible = true
-            switchPositionByTab(apiConstraintLayout, selectedTabPosition)
+            binding.apiReqBodyEditText.isVisible = false
+            binding.apiReqBodyEditText.visibility = View.GONE
         } else {
-            binding.apiTableLayout.visibility = View.GONE
+            binding.apiTableLayout.visibility = View.INVISIBLE
             binding.apiTableLayout.isVisible = false
-            switchPositionByTab(apiConstraintLayout, selectedTabPosition)
+            binding.apiReqBodyEditText.isVisible = true
+            binding.apiReqBodyEditText.visibility = View.VISIBLE
         }
-
         val apiEditText = binding.apiUrlEditText
         val btnSend = binding.apiBtnSend
-        val apiResponse = binding.apiResponseTextView
 
         // tab 이벤트
         apiReqTabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
@@ -184,9 +222,13 @@ class ApiFragment : Fragment() {
                 if (tab?.position == 0 || tab?.position == 1) {
                     binding.apiTableLayout.visibility = View.VISIBLE
                     binding.apiTableLayout.isVisible = true
+                    binding.apiReqBodyEditText.isVisible = false
+                    binding.apiReqBodyEditText.visibility = View.GONE
                 } else {
-                    binding.apiTableLayout.visibility = View.GONE
+                    binding.apiTableLayout.visibility = View.INVISIBLE
                     binding.apiTableLayout.isVisible = false
+                    binding.apiReqBodyEditText.isVisible = true
+                    binding.apiReqBodyEditText.visibility = View.VISIBLE
                 }
             }
 
@@ -202,13 +244,34 @@ class ApiFragment : Fragment() {
         btnSend.setOnClickListener {
             // 같지 않다면 선택한 값
             if (type?.toString() !== selectedItem) {
-                sendRequestForApi(apiEditText.text.toString(), selectedItem)
+                if ((apiEditText.text.toString() != "") && (apiEditText.text.toString()
+                        .contains("http") || (apiEditText.text.toString().contains("https")))
+                ) {
+                    // 요청 보내기
+                    sendRequestForApi(apiEditText.text.toString(), selectedItem, collectionId,binding.apiTitle.text.toString() ?: "")
+                } else {
+                    Toast.makeText(
+                        binding.root.context,
+                        "http or https로 시작하는 url 경로 입력해주세요",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
             // 같다면 선택한 값
             else {
-                sendRequestForApi(apiEditText.text.toString(), type)
+                if ((apiEditText.text.toString() != "") && (apiEditText.text.toString()
+                        .contains("http") || (apiEditText.text.toString().contains("https")))
+                ) {
+                    // 요청 보내기
+                    sendRequestForApi(apiEditText.text.toString(), type, collectionId,binding.apiTitle.text.toString().toString() ?: "")
+                } else {
+                    Toast.makeText(
+                        binding.root.context,
+                        "http or https로 시작하는 url 경로 입력해주세요",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
-
         }
 
         // 체크박스 선택시 Row추가
@@ -221,43 +284,8 @@ class ApiFragment : Fragment() {
         }
     }
 
-    private fun switchPositionByTab(apiConstraintLayout: ConstraintLayout, selectedTabPosition: Int) {
-
-        // 제약 조건 적용 후 뷰의 가시성 설정
-        if (selectedTabPosition == 0 || selectedTabPosition == 1) {
-            binding.apiTableLayout.visibility = View.VISIBLE
-            binding.apiReqBodyEditText.visibility = View.GONE
-        } else {
-            binding.apiTableLayout.visibility = View.GONE
-            binding.apiReqBodyEditText.visibility = View.VISIBLE
-        }
-        val constraintSet = ConstraintSet() // 제약조건 세트 관리
-        constraintSet.clone(apiConstraintLayout)
-        if(selectedTabPosition == 0 || selectedTabPosition == 1){
-            constraintSet.clear(R.id.apiResponseLabel, ConstraintSet.TOP) // Top에 대한 제약조건 삭제
-            constraintSet.connect(
-                R.id.apiResponseLabel,
-                ConstraintSet.TOP,
-                R.id.apiTableLayout,
-                ConstraintSet.BOTTOM
-            )
-        } else {
-            constraintSet.clear(R.id.apiResponseLabel, ConstraintSet.TOP) // Top에 대한 제약조건 삭제
-            constraintSet.connect(
-                R.id.apiResponseLabel,
-                ConstraintSet.TOP,
-                R.id.apiReqBodyEditText,
-                ConstraintSet.BOTTOM
-            )
-        }
-        // 적용
-        constraintSet.applyTo(apiConstraintLayout)
-
-
-    }
-
     // api 넘기고 type 넘기고 테이블에 있는 값들로 해서 Params, Headers, Body 처리 가능(구분하기)
-    private fun sendRequestForApi(url: String, type: String) {
+    private fun sendRequestForApi(url: String, type: String, collectionId: Int, title: String?) {
         val selectedTab = binding.apiReqTabLayout.selectedTabPosition
         Log.e("selectedTab", selectedTab.toString())
 
@@ -265,8 +293,18 @@ class ApiFragment : Fragment() {
         val paramsMap = mutableMapOf<String, String>() // params
         // body
         if (selectedTab == 2) {
-            val body = ""
-            makeRequest(url = url, method = type, headers = headerMap, queryParams = paramsMap)
+            val inputBody = binding.apiReqBodyEditText.text.toString()
+            // 여기에는 RequestBody 넣어줘야함
+            val mediaType = MediaType.parse("application/json")
+            try {
+                val jsonObject = JSONObject(inputBody.trim()) // input이 JSON 형태인지 체크하고 아니면 예외가 발생합니다.
+                val requestBody = RequestBody.create(mediaType, jsonObject.toString())
+                makeRequest(url = url, method = type, headers = headerMap, queryParams = paramsMap, body = requestBody, collectionId = collectionId, title = title ?: "")
+            } catch(e: JSONException){
+                Toast.makeText(binding.root.context, "Body 입력 데이터는 반드시 JSON 형태여야 합니다.", Toast.LENGTH_LONG).show()
+                Log.e("ApiFragment", e.message.toString())
+            }
+
         }
         // Params & Headers
         else {
@@ -314,7 +352,7 @@ class ApiFragment : Fragment() {
 
             paramsMap.remove("null")
             headerMap.remove("null")
-            makeRequest(url, type, headers = headerMap, queryParams = paramsMap)
+            makeRequest(url, type, headers = headerMap, queryParams = paramsMap, collectionId = collectionId, title = title ?: "")
         }
     }
 
@@ -420,12 +458,14 @@ class ApiFragment : Fragment() {
         }
     }
 
-    fun makeRequest(
+    private fun makeRequest(
         url: String,
         method: String,
         headers: Map<String, String>?,
         queryParams: Map<String, String>?,
-        body: RequestBody? = null
+        body: RequestBody? = null,
+        collectionId: Int,
+        title: String?
     ) {
         Log.d("makeRequest", "start!!")
         val currentTab = binding.apiReqTabLayout.selectedTabPosition
@@ -472,27 +512,62 @@ class ApiFragment : Fragment() {
                 requestBuilder.delete(body ?: RequestBody.create(null, ""))
             }
         }
-        val request = requestBuilder.build()
-        CoroutineScope(Dispatchers.IO).launch {
-            client.newCall(request).enqueue(object : Callback {
-                override fun onFailure(call: Call, e: IOException) {
-                    Log.e("ApiFragment_apiSend", e.toString())
-                    e.printStackTrace()
-                }
+        // 앱 죽는것 방지
+        try {
+            val request = requestBuilder.build()
+            CoroutineScope(Dispatchers.IO).launch {
+                client.newCall(request).enqueue(object : Callback {
+                    override fun onFailure(call: Call, e: IOException) {
+                        Log.e("ApiFragment_apiSend", e.toString())
+                        e.printStackTrace()
+                    }
 
-                override fun onResponse(call: Call, response: Response) {
-                    if (response.isSuccessful) {
-                        Log.d("ApiFragment_apiResponseBody", response.toString())
-                        val responseBody = response.toString()
-                        val prettyJson = formatJsonString(responseBody)
+                    override fun onResponse(call: Call, response: Response) {
+                        if (response.isSuccessful) {
+                            Log.d("ApiFragment_apiResponseBody", response.toString())
 
-                        activity?.runOnUiThread {
-                            binding.apiResponseTextView.text = prettyJson
+                            val responseBody = response.toString()
+                            val cookies = response.headers("Set-Cookie")
+                            responseBody.plus("\n\n\n")
+                            responseBody.plus("[Cookies]\n")
+
+                            for(cookie in cookies){
+                                responseBody.plus("Cookie : $cookie \n")
+                            }
+
+                            responseBody.plus("[Headers]\n")
+                            responseBody.plus(response.headers()).plus("\n")
+
+                            val prettyJson = formatJsonString(responseBody)
+
+                            activity?.runOnUiThread {
+                                binding.apiResponseTextView.text = prettyJson
+                            }
+
+                            updateRequest(url, method, collectionId, title)
                         }
                     }
-                }
-            })
+                })
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
+    }
+    // Request Update
+    private fun updateRequest(url: String, method: String, collectionId: Int, title: String?) {
+        var cTitle = title
+        // 빈 값이면 Url로 넣어서 insert or update 해주기
+        if(cTitle == "" || cTitle.isNullOrEmpty()){
+            cTitle = url
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            AppDatabase.getInstance(binding.root.context)?.requestDao()
+                ?.updateReqItemUrl(afterTitle = cTitle, url = url, prevTitle = prevTitle)
+
+            withContext(Dispatchers.Main){
+                Toast.makeText(binding.root.context, "히스토리에 저장되었습니다.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

@@ -139,7 +139,7 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
             )
 
             val requests = mutableListOf<RequestItem>()
-            context?.let { AppDatabase?.getInstance(it)?.collectionDao()?.insertCollectionWithRequests(
+            context?.let { AppDatabase.getInstance(it)?.collectionDao()?.insertCollectionWithRequests(
                 collection, requests
             ) }
 

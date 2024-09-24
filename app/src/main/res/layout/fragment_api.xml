@@ -11,7 +11,7 @@
         android:id="@+id/apiConstraintLayout"
         tools:context=".api.ApiFragment">
 
-        <TextView
+        <EditText
             android:id="@+id/apiTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -20,6 +20,7 @@
             android:textColor="@color/black"
             android:textSize="20sp"
             android:textStyle="bold"
+            android:inputType="text"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="request1" />
@@ -151,7 +152,7 @@
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/apiTableLayout" />
+            app:layout_constraintTop_toBottomOf="@id/apiReqBodyEditText" />
 
         <TextView
             android:id="@+id/apiResponseTextView"
@@ -166,8 +167,10 @@
             android:id="@+id/apiReqBodyEditText"
             android:layout_width="match_parent"
             android:layout_height="300dp"
-            android:visibility="invisible"
-            app:layout_constraintTop_toBottomOf="@+id/apiReqTabLayout" />
+            android:gravity="top|start"
+            android:inputType="textMultiLine"
+            android:minLines="1"
+            app:layout_constraintTop_toBottomOf="@+id/apiTableLayout" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

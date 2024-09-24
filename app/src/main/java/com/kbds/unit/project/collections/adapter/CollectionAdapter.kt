@@ -25,6 +25,7 @@ import com.kbds.unit.project.databinding.AlertBoxMenuBinding
 import com.kbds.unit.project.databinding.ItemCollectionBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -92,6 +93,7 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) :
             // 화살표 클릭 시 자식 아이템 보이기/숨기기
             binding.imgCollectionArrow1.setOnClickListener {
                 item.isExpanded = true
+                refreshData(position)
                 binding.childRecyclerView.visibility = View.VISIBLE
                 binding.imgCollectionArrow1.isVisible = false
                 binding.imgCollectionArrow2.isVisible = true
@@ -244,6 +246,34 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) :
                 }
             } else {
                 Log.e("CollectionAdapter_error", "$position 변화됨")
+            }
+        }
+
+        private fun refreshData(position: Int){
+            if(position != RecyclerView.NO_POSITION){
+                val item = currentList[position]
+                val cId = item.cId
+                CoroutineScope(Dispatchers.IO).launch {
+                    val childRequestItem =
+                        AppDatabase.getInstance(binding.root.context)?.collectionDao()
+                            ?.getCollectionWithRequests(collectionId = cId)
+
+                    val childItemList = mutableListOf<ChildReqItem>()
+                    if(childRequestItem?.requestList?.size != 0){
+                        for(childItem in childRequestItem!!.requestList){
+                            childItemList.add(ChildReqItem(
+                                collectionId = childItem.collectionId,
+                                type = childItem.type,
+                                title = childItem.title,
+                                url = childItem.url
+                            ))
+                        }
+                    }
+
+                    withContext(Dispatchers.Main){
+                        childReqAdapter.submitList(childItemList)
+                    }
+                }
             }
         }
 

@@ -2,6 +2,7 @@ package com.kbds.unit.project.api
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -19,6 +20,7 @@ import android.widget.EditText
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
@@ -29,6 +31,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.gson.Gson
 import com.kbds.unit.project.R
 import com.kbds.unit.project.database.AppDatabase
+import com.kbds.unit.project.database.model.HistoryItem
 import com.kbds.unit.project.database.model.RequestItem
 import com.kbds.unit.project.databinding.FragmentApiBinding
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +50,8 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -115,7 +120,10 @@ class ApiFragment : Fragment() {
         binding.apiUrlEditText.setText(url)
 
         spinner.setSelection(defaultSelectionIndex)
-        Log.e("APIFragment22", "CollectionID: $collectionId , Type: $type , Title: $title, URL: $url")
+        Log.e(
+            "APIFragment22",
+            "CollectionID: $collectionId , Type: $type , Title: $title, URL: $url"
+        )
     }
 
     @SuppressLint("CommitPrefEdits")
@@ -248,7 +256,12 @@ class ApiFragment : Fragment() {
                         .contains("http") || (apiEditText.text.toString().contains("https")))
                 ) {
                     // 요청 보내기
-                    sendRequestForApi(apiEditText.text.toString(), selectedItem, collectionId,binding.apiTitle.text.toString() ?: "")
+                    sendRequestForApi(
+                        apiEditText.text.toString(),
+                        selectedItem,
+                        collectionId,
+                        binding.apiTitle.text.toString() ?: ""
+                    )
                 } else {
                     Toast.makeText(
                         binding.root.context,
@@ -263,7 +276,12 @@ class ApiFragment : Fragment() {
                         .contains("http") || (apiEditText.text.toString().contains("https")))
                 ) {
                     // 요청 보내기
-                    sendRequestForApi(apiEditText.text.toString(), type, collectionId,binding.apiTitle.text.toString().toString() ?: "")
+                    sendRequestForApi(
+                        apiEditText.text.toString(),
+                        type,
+                        collectionId,
+                        binding.apiTitle.text.toString().toString() ?: ""
+                    )
                 } else {
                     Toast.makeText(
                         binding.root.context,
@@ -297,11 +315,24 @@ class ApiFragment : Fragment() {
             // 여기에는 RequestBody 넣어줘야함
             val mediaType = MediaType.parse("application/json")
             try {
-                val jsonObject = JSONObject(inputBody.trim()) // input이 JSON 형태인지 체크하고 아니면 예외가 발생합니다.
+                val jsonObject =
+                    JSONObject(inputBody.trim()) // input이 JSON 형태인지 체크하고 아니면 예외가 발생합니다.
                 val requestBody = RequestBody.create(mediaType, jsonObject.toString())
-                makeRequest(url = url, method = type, headers = headerMap, queryParams = paramsMap, body = requestBody, collectionId = collectionId, title = title ?: "")
-            } catch(e: JSONException){
-                Toast.makeText(binding.root.context, "Body 입력 데이터는 반드시 JSON 형태여야 합니다.", Toast.LENGTH_LONG).show()
+                makeRequest(
+                    url = url,
+                    method = type,
+                    headers = headerMap,
+                    queryParams = paramsMap,
+                    body = requestBody,
+                    collectionId = collectionId,
+                    title = title ?: ""
+                )
+            } catch (e: JSONException) {
+                Toast.makeText(
+                    binding.root.context,
+                    "Body 입력 데이터는 반드시 JSON 형태여야 합니다.",
+                    Toast.LENGTH_LONG
+                ).show()
                 Log.e("ApiFragment", e.message.toString())
             }
 
@@ -352,7 +383,14 @@ class ApiFragment : Fragment() {
 
             paramsMap.remove("null")
             headerMap.remove("null")
-            makeRequest(url, type, headers = headerMap, queryParams = paramsMap, collectionId = collectionId, title = title ?: "")
+            makeRequest(
+                url,
+                type,
+                headers = headerMap,
+                queryParams = paramsMap,
+                collectionId = collectionId,
+                title = title ?: ""
+            )
         }
     }
 
@@ -522,6 +560,7 @@ class ApiFragment : Fragment() {
                         e.printStackTrace()
                     }
 
+                    @RequiresApi(Build.VERSION_CODES.O)
                     override fun onResponse(call: Call, response: Response) {
                         if (response.isSuccessful) {
                             Log.d("ApiFragment_apiResponseBody", response.toString())
@@ -531,7 +570,7 @@ class ApiFragment : Fragment() {
                             responseBody.plus("\n\n\n")
                             responseBody.plus("[Cookies]\n")
 
-                            for(cookie in cookies){
+                            for (cookie in cookies) {
                                 responseBody.plus("Cookie : $cookie \n")
                             }
 
@@ -545,6 +584,19 @@ class ApiFragment : Fragment() {
                             }
 
                             updateRequest(url, method, collectionId, title)
+                            val nowTime = LocalDateTime.now()
+                            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                            val formattedDate = nowTime.format(formatter)
+                            insertHistoryItem(
+                                collectionId,
+                                formattedDate,
+                                title,
+                                method,
+                                url,
+                                queryParams,
+                                headers,
+                                body
+                            )
                         }
                     }
                 })
@@ -554,18 +606,51 @@ class ApiFragment : Fragment() {
         }
 
     }
+
+    // History Table 저장
+    private fun insertHistoryItem(
+        collectionId: Int,
+        formattedDate: String?,
+        title: String?,
+        method: String,
+        url: String,
+        queryParams: Map<String, String>?,
+        headers: Map<String, String>?,
+        body: RequestBody?
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val reqId = AppDatabase.getInstance(binding.root.context)?.requestDao()
+                ?.getReqIdInHistory(collectionId, title ?: "", url) ?: ""
+
+            AppDatabase.getInstance(binding.root.context)?.historyDao()
+                ?.insertHistoryItem(
+                    HistoryItem(
+                        reqId = reqId as Int,
+                        collectionId = collectionId,
+                        date = formattedDate!!,
+                        title = title!!,
+                        type = method,
+                        url = url,
+                        params = queryParams as MutableMap<String, String>,
+                        headers = headers as MutableMap<String, String>,
+                        body = body.toString()
+                    )
+                )
+        }
+    }
+
     // Request Update
     private fun updateRequest(url: String, method: String, collectionId: Int, title: String?) {
         var cTitle = title
         // 빈 값이면 Url로 넣어서 insert or update 해주기
-        if(cTitle == "" || cTitle.isNullOrEmpty()){
+        if (cTitle == "" || cTitle.isNullOrEmpty()) {
             cTitle = url
         }
         CoroutineScope(Dispatchers.IO).launch {
             AppDatabase.getInstance(binding.root.context)?.requestDao()
                 ?.updateReqItemUrl(afterTitle = cTitle, url = url, prevTitle = prevTitle)
 
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 Toast.makeText(binding.root.context, "히스토리에 저장되었습니다.", Toast.LENGTH_SHORT).show()
             }
         }

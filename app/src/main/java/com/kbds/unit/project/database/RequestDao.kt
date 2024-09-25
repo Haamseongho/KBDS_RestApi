@@ -39,4 +39,7 @@ interface RequestDao {
 
     @Query("UPDATE RequestTB SET title = :afterTitle, url = :url WHERE title = :prevTitle")
     suspend fun updateReqItemUrl(afterTitle: String, url: String, prevTitle: String)
+
+    @Query("SELECT reqId FROM RequestTB WHERE collectionId = :cid and title = :title and url = :url")
+    suspend fun getReqIdInHistory(cid: Int, title: String, url: String)
 }

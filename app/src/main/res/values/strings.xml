@@ -9,4 +9,5 @@
     <string name="apiSend">SEND</string>
     <string name="apiResponse">Hit Send to get a reponse2</string>
     <string name="apiResponseLabel">Response</string>
+    <string name="clear_all">clear all</string>
 </resources>

@@ -24,8 +24,10 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.google.android.material.tabs.TabLayout
+import com.google.gson.Gson
 import com.kbds.unit.project.R
 import com.kbds.unit.project.database.AppDatabase
+import com.kbds.unit.project.database.model.HistoryItem
 import com.kbds.unit.project.databinding.FragmentApiBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -611,7 +613,17 @@ class ApiFragment : Fragment() {
         headers: Map<String, String>?,
         body: RequestBody?
     ) {
+        CoroutineScope(Dispatchers.IO).launch {
 
+            val reqId = AppDatabase.getInstance(binding.root.context)?.requestDao()
+                ?.getReqIdByTitleAndCid(afterTitle = title ?: "", cId = collectionId)
+            Log.e("REQID", reqId.toString())
+            val paramJsonString = Gson().toJson(queryParams)
+            val headerJsonString = Gson().toJson(headers)
+            AppDatabase.getInstance(binding.root.context)?.historyDao()
+                ?.insertHistory(HistoryItem(reqId = reqId!!, collectionId = collectionId, date = formattedDate!!, title = title ?: "No_title", type = method,
+                    url = url, params = paramJsonString, headers = headerJsonString, body = body.toString()))
+        }
     }
 
     // Request Update

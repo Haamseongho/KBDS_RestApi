@@ -5,7 +5,10 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.kbds.unit.project.R
+import com.kbds.unit.project.databinding.FragmentHistoryBinding
+import com.kbds.unit.project.history.adapter.HistoryAdapter
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -21,7 +24,8 @@ class HistoryFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
-
+    private lateinit var binding: FragmentHistoryBinding
+    private val childhisAdapter = HistoryAdapter()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -36,6 +40,20 @@ class HistoryFragment : Fragment() {
     ): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_history, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding = FragmentHistoryBinding.bind(view)
+        initViews()
+    }
+
+    private fun initViews() {
+        val historyRecyclerView = binding.historyRecyclerView
+        historyRecyclerView.apply {
+            layoutManager = LinearLayoutManager(binding.root.context)
+            adapter = childhisAdapter
+        }
     }
 
     companion object {

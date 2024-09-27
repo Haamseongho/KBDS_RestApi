@@ -5,13 +5,15 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.kbds.unit.project.collections.model.CollectionItem
+import com.kbds.unit.project.database.model.HistoryItem
 import com.kbds.unit.project.database.model.RequestItem
 
 
-@Database(entities = [RequestItem::class, CollectionItem::class], version = 2)
+@Database(entities = [RequestItem::class, CollectionItem::class, HistoryItem::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun requestDao(): RequestDao
     abstract fun collectionDao(): CollectionDao
+    abstract fun historyDao() : HistoryDao
 
 
     companion object {

@@ -21,18 +21,11 @@ import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
-import androidx.core.view.get
 import androidx.core.view.isVisible
-import androidx.room.util.query
 import com.google.android.material.tabs.TabLayout
-import com.google.gson.Gson
 import com.kbds.unit.project.R
 import com.kbds.unit.project.database.AppDatabase
-import com.kbds.unit.project.database.model.HistoryItem
-import com.kbds.unit.project.database.model.RequestItem
 import com.kbds.unit.project.databinding.FragmentApiBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -618,25 +611,7 @@ class ApiFragment : Fragment() {
         headers: Map<String, String>?,
         body: RequestBody?
     ) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val reqId = AppDatabase.getInstance(binding.root.context)?.requestDao()
-                ?.getReqIdInHistory(collectionId, title ?: "", url) ?: ""
 
-            AppDatabase.getInstance(binding.root.context)?.historyDao()
-                ?.insertHistoryItem(
-                    HistoryItem(
-                        reqId = reqId as Int,
-                        collectionId = collectionId,
-                        date = formattedDate!!,
-                        title = title!!,
-                        type = method,
-                        url = url,
-                        params = queryParams as MutableMap<String, String>,
-                        headers = headers as MutableMap<String, String>,
-                        body = body.toString()
-                    )
-                )
-        }
     }
 
     // Request Update

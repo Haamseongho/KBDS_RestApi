@@ -93,11 +93,12 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
         }
 
         CoroutineScope(Dispatchers.IO).launch {
-            val getCollection = context?.let { AppDatabase.getInstance(it)?.collectionDao()?.getAll() }
+            val getCollection =
+                context?.let { AppDatabase.getInstance(it)?.collectionDao()?.getAll() }
             withContext(Dispatchers.Main) {
                 collectionAdapter!!.submitList(getCollection)
             }
-            if(getCollection?.isNotEmpty() == true || !getCollection.isNullOrEmpty()){
+            if (getCollection?.isNotEmpty() == true || !getCollection.isNullOrEmpty()) {
                 size = getCollection.size // size 가지고 넣어주기
             }
 
@@ -129,23 +130,27 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
     private fun makeCollection(alertDialogBox: AlertDialog?) {
         var collectionName = dialogViewBinding.alertEditTextCollection.text
         CoroutineScope(Dispatchers.IO).launch {
-            val getCollection = context?.let { AppDatabase.getInstance(it)?.collectionDao()?.getAll() }
+            val getCollection =
+                context?.let { AppDatabase.getInstance(it)?.collectionDao()?.getAll() }
             size = getCollection?.size // 현재 컬렉션의 크기로 정의
             // 처음에는 빈 값으로 리스트 넣기 (RequestItem)
-            val collection = CollectionItem (
+            val collection = CollectionItem(
                 id = (size).toString().plus("_collection"),
                 title = collectionName.toString(),
                 requestCount = 0
             )
 
             val requests = mutableListOf<RequestItem>()
-            context?.let { AppDatabase.getInstance(it)?.collectionDao()?.insertCollectionWithRequests(
-                collection, requests
-            ) }
+            context?.let {
+                AppDatabase.getInstance(it)?.collectionDao()?.insertCollectionWithRequests(
+                    collection, requests
+                )
+            }
 
             Log.d("CollectionFragment_UID", size.toString())
 
-            val reCollection = context?.let { AppDatabase.getInstance(it)?.collectionDao()?.getAll() }
+            val reCollection =
+                context?.let { AppDatabase.getInstance(it)?.collectionDao()?.getAll() }
             // Insert하고나서 다시 조회해서 넣어주기
             withContext(Dispatchers.Main) {
                 collectionAdapter?.submitList(reCollection)
@@ -178,23 +183,22 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
     }
 
     override fun onChildItemClicked(data: ChildReqItem) {// 메서드 호출 여부 확인을 위한 로그
+        mActivity?.sendDataToFragment(data, 1)
         Log.d("CollectionFragment", "onChildItemClicked called")
+       // viewPager!!.setCurrentItem(1, true)
+//        val sharedPreferences = binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
+//        val editor = sharedPreferences.edit()
+//        Log.e("editorTest", sharedPreferences.getInt("COLLECTION_ID", 0).toString())
+//        Log.e("editorTest", sharedPreferences.getString("TYPE", "").toString())
+//        Log.e("editorTest", sharedPreferences.getString("TITLE", "").toString())
+//        Log.e("editorTest", sharedPreferences.getString("URL", "").toString())
+//        editor.apply {
+//            putInt("COLLECTION_ID", data.collectionId)
+//            putString("TYPE", data.type)
+//            putString("TITLE", data.title)
+//            putString("URL", data.url ?: "")
+//        }.apply()
 
-        Log.e("CollectionFragment_childItemClicked", "clicked!@!@!!!".plus(data.toString()))
-
-        val sharedPreferences = binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        Log.e("editorTest", sharedPreferences.getInt("COLLECTION_ID", 0).toString())
-        Log.e("editorTest", sharedPreferences.getString("TYPE", "").toString())
-        Log.e("editorTest", sharedPreferences.getString("TITLE", "").toString())
-        Log.e("editorTest", sharedPreferences.getString("URL", "").toString())
-        editor.apply {
-            putInt("COLLECTION_ID", data.collectionId)
-            putString("TYPE", data.type)
-            putString("TITLE", data.title)
-            putString("URL", data.url ?: "")
-        }.apply()
-
-        viewPager!!.setCurrentItem(1, true)
+        // viewPager!!.setCurrentItem(1, true)
     }
 }

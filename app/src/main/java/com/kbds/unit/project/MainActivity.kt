@@ -1,22 +1,23 @@
 package com.kbds.unit.project
 
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.kbds.unit.project.api.ApiFragment
 import com.kbds.unit.project.collections.CollectionFragment
+import com.kbds.unit.project.collections.model.ChildReqItem
 import com.kbds.unit.project.databinding.ActivityMainBinding
 import com.kbds.unit.project.history.HistoryFragment
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     var viewPagerAdapter: ViewPagerAdapter? = null
-
+    var bundle: Bundle? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -34,9 +35,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun initViews() {
 
-        ViewPagerAdapter.fragmentList.add(CollectionFragment())
-        ViewPagerAdapter.fragmentList.add(ApiFragment())
-        ViewPagerAdapter.fragmentList.add(HistoryFragment())
         binding.mainTabLayout.addTab(
             binding.mainTabLayout.newTab().setIcon(R.drawable.baseline_account_circle_24)
                 .setText(R.string.main_tab_1)
@@ -51,8 +49,6 @@ class MainActivity : AppCompatActivity() {
         )
 
         viewPagerAdapter = ViewPagerAdapter(this, binding.mainViewPager)
-        val sharedPreferences = binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
 
         binding.mainViewPager.adapter = viewPagerAdapter
 
@@ -81,6 +77,37 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }.attach()
+
+        binding.mainTabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                tab?.let {
+                    // 선택된 탭의 위치로 ViewPager 이동
+                    binding.mainViewPager.setCurrentItem(it.position, true)
+                    bundle?.let { it1 -> viewPagerAdapter?.setDataToFragment(it.position, it1) }
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+
+        // 데이터 전달
+        sendDataToFragment(null, 0)
+    }
+
+    fun sendDataToFragment(data: ChildReqItem?, position: Int){
+        Log.d("haams_data", data.toString())
+        if(data != null){
+            bundle = Bundle().apply {
+                putInt("COLLECTION_ID", data.collectionId)
+                putString("TYPE", data.type)
+                putString("TITLE", data.title)
+                putString("URL", data.url ?: "")
+            }
+            Log.d("haams_data22", bundle.toString())
+        }
+
     }
 
     override fun onRestart() {

@@ -64,7 +64,6 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) :
                 layoutManager = linearLayoutManager
                 adapter = childReqAdapter
                 setHasFixedSize(true)
-
                 setRecycledViewPool(RecyclerView.RecycledViewPool())  // ViewPool 설정
             }
         }

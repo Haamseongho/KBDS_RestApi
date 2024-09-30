@@ -1,4 +1,4 @@
-package com.kbds.unit.project.database
+package com.kbds.unit.project.database.Dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -11,6 +11,9 @@ import com.kbds.unit.project.database.model.RequestItem
 
 @Dao
 interface RequestDao {
+
+    @Insert
+    suspend fun insertNewCollection(requestItem: RequestItem)
     @Query("DELETE FROM RequestTB WHERE reqId = :id")
     suspend fun deleteByReqId(id: Int)
 

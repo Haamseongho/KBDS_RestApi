@@ -8,7 +8,6 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.Gravity
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +22,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import com.google.android.material.tabs.TabLayout
 import com.google.gson.Gson
 import com.kbds.unit.project.R
@@ -81,6 +81,9 @@ class ApiFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
+        Log.e("Haams704_view", "CollectionId : ${arguments?.getInt("COLLECTION_ID", -1)}" +
+                "Type : ${arguments?.getString("TYPE")} Title: ${arguments?.getString("TITLE")} URL : ${arguments?.getString("URL")}")
+
         return inflater.inflate(R.layout.fragment_api, container, false)
     }
 
@@ -125,6 +128,9 @@ class ApiFragment : Fragment() {
     private fun initViews() {
         // 처음 초기에만 발생
         isFirstOpen = false
+
+        Log.e("Haams704", "CollectionId : ${arguments?.getInt("COLLECTION_ID", -1)}" +
+                "Type : ${arguments?.getString("TYPE")} Title: ${arguments?.getString("TITLE")} URL : ${arguments?.getString("URL")}")
 
         val itemList = listOf("GET", "POST", "PUT", "DELETE")
         val spinnerAdapter =
@@ -481,6 +487,9 @@ class ApiFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        Log.e("Haams704", "CollectionId : ${arguments?.getInt("COLLECTION_ID", -1)}" +
+                "Type : ${arguments?.getString("TYPE")} Title: ${arguments?.getString("TITLE")} URL : ${arguments?.getString("URL")}")
+
         if (!isFirstOpen) {
             initResumeData()  // 다시 UI 구성
         } else {
@@ -621,8 +630,20 @@ class ApiFragment : Fragment() {
             val paramJsonString = Gson().toJson(queryParams)
             val headerJsonString = Gson().toJson(headers)
             AppDatabase.getInstance(binding.root.context)?.historyDao()
-                ?.insertHistory(HistoryItem(reqId = reqId!!, collectionId = collectionId, date = formattedDate!!, title = title ?: "No_title", type = method,
-                    url = url, params = paramJsonString, headers = headerJsonString, body = body.toString()))
+                ?.insertHistory(
+                    HistoryItem(
+                        reqId = reqId!!,
+                        collectionId = collectionId,
+                        date = formattedDate!!,
+                        title = title ?: "No_title",
+                        type = method,
+                        url = url,
+                        params = paramJsonString,
+                        headers = headerJsonString,
+                        body = body.toString()
+                    )
+                )
+
         }
     }
 

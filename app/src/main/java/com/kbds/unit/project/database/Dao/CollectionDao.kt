@@ -1,4 +1,4 @@
-package com.kbds.unit.project.database
+package com.kbds.unit.project.database.Dao
 
 import android.icu.text.CaseMap.Title
 import androidx.room.Dao
@@ -92,4 +92,7 @@ interface CollectionDao {
 
     @Query("UPDATE CollectionTB SET requestCount = :size WHERE cId = :collectionId")
     suspend fun updateRequestCount(size: Int, collectionId: Int)
+
+    @Query("SELECT * FROM CollectionTB WHERE title = :findTitle")
+    suspend fun findTitleInHistory(findTitle: String) : List<CollectionItem>
 }

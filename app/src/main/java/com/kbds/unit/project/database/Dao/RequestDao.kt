@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import com.kbds.unit.project.collections.model.CollectionItem
 import com.kbds.unit.project.database.model.RequestItem
@@ -19,6 +20,13 @@ interface RequestDao {
 
     @Query("DELETE FROM RequestTB WHERE title = :reqTitle")
     suspend fun deleteByReqTitle(reqTitle: String)
+
+    @Transaction
+    @Query("DELETE FROM RequestTB WHERE reqId = :reqId")
+    suspend fun deleteByChildCollectionId(reqId: Int)
+
+    @Query("SELECT reqId FROM RequestTB WHERE title = :title and type = :type and collectionId = :cId")
+    suspend fun findReqIdByOtherData(title: String, type: String, cId: Int) : Int
 
     @Query("DELETE FROM RequestTB WHERE collectionId = :id")
     suspend fun deleteByCollectionId(id: Int)
@@ -40,9 +48,17 @@ interface RequestDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateReqItemUrl(requestItem: RequestItem)
 
-    @Query("UPDATE RequestTB SET title = :afterTitle, url = :url WHERE title = :prevTitle")
-    suspend fun updateReqItemUrl(afterTitle: String, url: String, prevTitle: String)
+    @Query("UPDATE RequestTB SET title = :afterTitle, url = :url WHERE title = :prevTitle and reqId = :reqId")
+    suspend fun updateReqItemUrl(afterTitle: String, url: String, prevTitle: String, reqId: Int)
 
     @Query("SELECT reqId FROM REQUESTTB WHERE title = :afterTitle and collectionId = :cId")
     suspend fun getReqIdByTitleAndCid(afterTitle: String, cId: Int) : Int?
+
+    // List가져오기
+    @Query("SELECT * FROM REQUESTTB WHERE reqId = :reqId")
+    suspend fun getRequestListByReqId(reqId: Int) : List<RequestItem>
+
+    // Collection ID로 사이즈 가져오기
+    @Query("SELECT * FROM REQUESTTB WHERE collectionId = :cId")
+    suspend fun getSizeFromCollectionId(cId: Int) : List<RequestItem>
 }

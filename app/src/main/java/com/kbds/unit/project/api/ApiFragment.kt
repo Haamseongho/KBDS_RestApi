@@ -1,7 +1,6 @@
 package com.kbds.unit.project.api
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
@@ -67,6 +66,10 @@ class ApiFragment : Fragment() {
     val client = OkHttpClient()
     var selectedItem = ""
     var prevTitle = ""
+    var collectionId = -1
+    var type = ""
+    var title = ""
+    var url = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,9 +83,6 @@ class ApiFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        Log.e("Haams704_view", "CollectionId : ${arguments?.getInt("COLLECTION_ID", -1)}" +
-                "Type : ${arguments?.getString("TYPE")} Title: ${arguments?.getString("TITLE")} URL : ${arguments?.getString("URL")}")
 
         return inflater.inflate(R.layout.fragment_api, container, false)
     }
@@ -94,6 +94,18 @@ class ApiFragment : Fragment() {
         initViews()
     }
 
+    fun updateData(bundle: Bundle){
+        // 데이터를 받아와서 UI에 반영하거나 로직 처리
+        collectionId = bundle.getInt("COLLECTION_ID")
+        type = bundle.getString("TYPE", "")
+        title = bundle.getString("TITLE", "")
+        url = bundle.getString("URL", "")
+        prevTitle = bundle.getString("TITLE", "")
+        // 데이터를 이용한 업데이트 작업 수행
+        Log.d("haams70123123", "Data received: $collectionId, $type, $title, $url")
+
+    }
+
     private fun initResumeData() {
         val itemList = listOf("GET", "POST", "PUT", "DELETE")
         val spinnerAdapter =
@@ -102,24 +114,13 @@ class ApiFragment : Fragment() {
         binding.apiSpinner.apply {
             adapter = spinnerAdapter
         }
-        val sharedPreferences =
-            binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
 
-        val collectionId = sharedPreferences.getInt("COLLECTION_ID", -1)
-        val title = sharedPreferences.getString("TITLE", "")
-
-        prevTitle = title ?: ""
         binding.apiTitle.setText(title)
-        val type = sharedPreferences.getString("TYPE", "GET")
-
-        val url = sharedPreferences.getString("URL", "")
         val defaultSelectionIndex = itemList.indexOf(type)
-
         binding.apiUrlEditText.setText(url)
-
         spinner.setSelection(defaultSelectionIndex)
         Log.e(
-            "APIFragment22",
+            "APIFragment2222",
             "CollectionID: $collectionId , Type: $type , Title: $title, URL: $url"
         )
     }
@@ -127,26 +128,11 @@ class ApiFragment : Fragment() {
     @SuppressLint("CommitPrefEdits")
     private fun initViews() {
         // 처음 초기에만 발생
-        isFirstOpen = false
-
-        Log.e("Haams704", "CollectionId : ${arguments?.getInt("COLLECTION_ID", -1)}" +
-                "Type : ${arguments?.getString("TYPE")} Title: ${arguments?.getString("TITLE")} URL : ${arguments?.getString("URL")}")
 
         val itemList = listOf("GET", "POST", "PUT", "DELETE")
         val spinnerAdapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, itemList)
-        val sharedPreferences =
-            binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
-
-        val collectionId = sharedPreferences.getInt("COLLECTION_ID", -1)
-        val type = sharedPreferences.getString("TYPE", "GET")
-        val title = sharedPreferences.getString("TITLE", "")
-        val url = sharedPreferences.getString("URL", "")
-
         val spinner = binding.apiSpinner
-
-        Log.e("APIFragment", "CollectionID: $collectionId , Type: $type , Title: $title, URL: $url")
-
 
         binding.apiSpinner.apply {
             adapter = spinnerAdapter
@@ -162,11 +148,9 @@ class ApiFragment : Fragment() {
             binding.apiReqTabLayout.newTab().setText("Body")
         )
         // 이전꺼 가지고있기
-        prevTitle = title ?: ""
 
-
-        binding.apiTitle.setText(title)
-        val defaultSelectionIndex = itemList.indexOf(type)
+        binding.apiTitle.setText(prevTitle)
+        val defaultSelectionIndex = itemList.indexOf("GET")  // 처음엔 GET
         spinner.setSelection(defaultSelectionIndex)
 
         // 선택된 항목 처리
@@ -178,8 +162,6 @@ class ApiFragment : Fragment() {
                 id: Long
             ) {
                 selectedItem = itemList[position]
-                Toast.makeText(requireContext(), "Selected: $selectedItem", Toast.LENGTH_SHORT)
-                    .show()
             }
 
             override fun onNothingSelected(parent: AdapterView<*>) {
@@ -352,8 +334,6 @@ class ApiFragment : Fragment() {
                 if (row is TableRow) {
                     // tableRow row 순회
                     // 행 순회할 때마다 키벨류 뽑아서 넣기
-                    var key2 = ""
-                    var value2 = ""
                     if (key1 != "" && value1 != "") {
                         paramsMap[key1] = value1
                         headerMap[key1] = value1
@@ -489,15 +469,7 @@ class ApiFragment : Fragment() {
         super.onResume()
         Log.e("Haams704", "CollectionId : ${arguments?.getInt("COLLECTION_ID", -1)}" +
                 "Type : ${arguments?.getString("TYPE")} Title: ${arguments?.getString("TITLE")} URL : ${arguments?.getString("URL")}")
-
-        if (!isFirstOpen) {
-            initResumeData()  // 다시 UI 구성
-        } else {
-            val sharedPreferences =
-                binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
-            // 값 분배하고 삭제하기
-            sharedPreferences.edit().clear().apply()
-        }
+        initResumeData()
     }
 
     private fun makeRequest(
@@ -587,7 +559,7 @@ class ApiFragment : Fragment() {
                                 binding.apiResponseTextView.text = prettyJson
                             }
 
-                            updateRequest(url, method, collectionId, title)
+                            updateRequest(url, method, collectionId, title)  // 변화된 값은 RequestTB에 업데이트할것
                             val nowTime = LocalDateTime.now()
                             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
                             val formattedDate = nowTime.format(formatter)
@@ -625,14 +597,14 @@ class ApiFragment : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
 
             val reqId = AppDatabase.getInstance(binding.root.context)?.requestDao()
-                ?.getReqIdByTitleAndCid(afterTitle = title ?: "", cId = collectionId)
+                ?.getReqIdByTitleAndCid(afterTitle = title ?: "", cId = collectionId) ?: 1
             Log.e("REQID", reqId.toString())
             val paramJsonString = Gson().toJson(queryParams)
             val headerJsonString = Gson().toJson(headers)
             AppDatabase.getInstance(binding.root.context)?.historyDao()
                 ?.insertHistory(
                     HistoryItem(
-                        reqId = reqId!!,
+                        reqId = reqId,
                         collectionId = collectionId,
                         date = formattedDate!!,
                         title = title ?: "No_title",
@@ -655,8 +627,10 @@ class ApiFragment : Fragment() {
             cTitle = url
         }
         CoroutineScope(Dispatchers.IO).launch {
+            val reqId = AppDatabase.getInstance(binding.root.context)?.requestDao()
+                ?.findReqIdByOtherData(title = prevTitle, type = type, cId = collectionId) ?: -1// 기존에 저장된 걸로 타입 정해야해서 type으로 가져옴
             AppDatabase.getInstance(binding.root.context)?.requestDao()
-                ?.updateReqItemUrl(afterTitle = cTitle, url = url, prevTitle = prevTitle)
+                ?.updateReqItemUrl(afterTitle = cTitle, url = url, prevTitle = prevTitle, reqId = reqId)
 
             withContext(Dispatchers.Main) {
                 Toast.makeText(binding.root.context, "히스토리에 저장되었습니다.", Toast.LENGTH_SHORT).show()

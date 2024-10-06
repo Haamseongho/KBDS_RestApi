@@ -1,24 +1,17 @@
 package com.kbds.unit.project.collections.adapter
 
-import android.annotation.SuppressLint
-import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
 import com.kbds.unit.project.R
-import com.kbds.unit.project.api.ApiFragment
-import com.kbds.unit.project.collections.CollectionFragment
 import com.kbds.unit.project.collections.model.ChildReqItem
 import com.kbds.unit.project.database.AppDatabase
-import com.kbds.unit.project.databinding.ActivityMainBinding
 import com.kbds.unit.project.databinding.AlertBoxChildMenuBinding
 import com.kbds.unit.project.databinding.AlertBoxForCollectionBinding
 import com.kbds.unit.project.databinding.ChildRequestItemBinding
@@ -31,11 +24,13 @@ class ChildReqAdapter(
     private val listener: ChildReqAdapterListener
 ) : ListAdapter<ChildReqItem, ChildReqAdapter.ViewHolder>(diff) {
 
+    val collectionAdapter2 = CollectionAdapter(listener)
+
     inner class ViewHolder(private val binding: ChildRequestItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: ChildReqItem) {
-            Log.e("position!!!!!", adapterPosition.toString())
-            Log.e("ChildReqID", item.reqId.toString().plus("clicked"))
+            // 닫기 버튼 진행
+
             val item2 = currentList[adapterPosition]
             Log.e("items@@@@@@", item2.toString())
             binding.root.setOnClickListener {
@@ -171,16 +166,25 @@ class ChildReqAdapter(
         private fun deleteReqData() {
             val position = adapterPosition
             if (position != RecyclerView.NO_POSITION) {
+                Log.e("deleteReqData", currentList.toString())
                 val item = currentList[position]
+                val cId = item.collectionId
                 Log.e(
                     "ChildReqAdapter!!!",
-                    position.toString().plus("///").plus(item.reqId).plus("??").plus(item.title)
+                    "title: ${item.title} reqId: ${item.reqId} type: ${item.type}"
                 )
                 CoroutineScope(Dispatchers.IO).launch {
+                    val reqId = AppDatabase.getInstance(context = binding.root.context)?.requestDao()
+                        ?.findReqIdByOtherData(title = item.title, type = item.type, cId = cId)
                     // reqId는 유니크한 아이디이기에 이걸로 찾아서 삭제할 것
                     // id가 계속 잘 안먹혀서 타이틀로 우선 교체
-                    AppDatabase.getInstance(context = binding.root.context)?.requestDao()
-                        ?.deleteByReqTitle(item.title)
+                    if (reqId != null) {
+                        Log.e("reqId_childAdapter", reqId.toString())
+                        AppDatabase.getInstance(context = binding.root.context)?.requestDao()
+                            ?.deleteByChildCollectionId(reqId = reqId)
+                    }
+                    Log.d("DeleteQuery", "Deleting items with requestId: $reqId")
+
                     // 삭제 먼저하고 재조회한 다음 전체 데이터 리스트에 다시 넣고 정리해서 submitList에 담아 변경내용 관리
 
                     // 선택한 reqId의 CollectionId를 가지고 Collection & Request 값 반환받기
@@ -206,20 +210,30 @@ class ChildReqAdapter(
                     val reCollectionList =
                         AppDatabase.getInstance(binding.root.context)?.collectionDao()
                             ?.getAll()
-
-                    val childReqItemSubList = mutableListOf<ChildReqItem>()
-                    for (childReqItem in reCollection?.requestList ?: mutableListOf()) {
-                        childReqItemSubList.add(
-                            ChildReqItem(
-                                collectionId = childReqItem.collectionId,
-                                type = childReqItem.type,
-                                title = childReqItem.title
-                            )
+                    Log.e("ChildReqAdapter_Size2", reCollectionList.toString())
+                    val childReqItemSubList = reCollection?.requestList?.map { childReqItem ->
+                        ChildReqItem(
+                            collectionId = childReqItem.collectionId,
+                            type = childReqItem.type,
+                            title = childReqItem.title
                         )
-                    }
+                    } ?: emptyList()
+
+
+                    val size = childReqItemSubList.size
+                    AppDatabase.getInstance(binding.root.context)?.collectionDao()
+                        ?.updateRequestCount(size = size, collectionId = cId)
+                    val reCollection2 =
+                        AppDatabase.getInstance(binding.root.context)?.collectionDao()
+                            ?.getAll()
+
                     withContext(Dispatchers.Main) {
-                        submitList(childReqItemSubList)
-                        // collectionAdapter.submitList(reCollectionList)
+                        val updatedList = currentList.toMutableList()
+                        updatedList.removeAt(position)
+                        Log.e("updatedList", updatedList.toString())
+
+                        submitList(updatedList)
+                        notifyItemRemoved(position)
                     }
                 }
             }

@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        viewPagerAdapter = ViewPagerAdapter(this, binding.mainViewPager)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -48,7 +48,10 @@ class MainActivity : AppCompatActivity() {
                 .setText(R.string.main_tab_3)
         )
 
+
         viewPagerAdapter = ViewPagerAdapter(this, binding.mainViewPager)
+
+
 
         binding.mainViewPager.adapter = viewPagerAdapter
 
@@ -96,9 +99,12 @@ class MainActivity : AppCompatActivity() {
         sendDataToFragment(null, 0)
     }
 
-    fun sendDataToFragment(data: ChildReqItem?, position: Int){
+
+
+    fun sendDataToFragment(data: ChildReqItem?, position: Int) {
         Log.d("haams_data", data.toString())
-        if(data != null){
+
+        if (data != null) {
             bundle = Bundle().apply {
                 putInt("COLLECTION_ID", data.collectionId)
                 putString("TYPE", data.type)
@@ -106,12 +112,20 @@ class MainActivity : AppCompatActivity() {
                 putString("URL", data.url ?: "")
             }
             Log.d("haams_data22", bundle.toString())
-        }
 
+            // 이미 생성된 프래그먼트에 데이터를 전달
+            viewPagerAdapter!!.setDataToFragment(position, bundle!!)
+        }
     }
+
 
     override fun onRestart() {
         super.onRestart()
+        Log.e("MainActivity","HIHIH")
+    }
+
+    override fun onResume() {
+        super.onResume()
         Log.e("MainActivity","HIHIH")
     }
 }

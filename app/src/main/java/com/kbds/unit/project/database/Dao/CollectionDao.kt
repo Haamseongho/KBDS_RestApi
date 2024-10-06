@@ -93,6 +93,10 @@ interface CollectionDao {
     @Query("UPDATE CollectionTB SET requestCount = :size WHERE cId = :collectionId")
     suspend fun updateRequestCount(size: Int, collectionId: Int)
 
+    // Collection Title 가지고 찾아서 리스트 추출
     @Query("SELECT * FROM CollectionTB WHERE title = :findTitle")
     suspend fun findTitleInHistory(findTitle: String) : List<CollectionItem>
+
+    @Query("SELECT cId FROM collectionTB")
+    suspend fun getAllCId() : List<Int>
 }

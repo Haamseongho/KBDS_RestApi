@@ -1,21 +1,17 @@
 package com.kbds.unit.project.collections.adapter
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
-import androidx.core.view.NestedScrollingChild
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.kbds.unit.project.R
 import com.kbds.unit.project.collections.model.ChildReqItem
 import com.kbds.unit.project.collections.model.CollectionItem
 import com.kbds.unit.project.database.AppDatabase
@@ -25,10 +21,8 @@ import com.kbds.unit.project.databinding.AlertBoxMenuBinding
 import com.kbds.unit.project.databinding.ItemCollectionBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.UUID
 
 class CollectionAdapter(private val listener: ChildReqAdapterListener) :
     ListAdapter<CollectionItem, CollectionAdapter.ViewHolder>(diff) {
@@ -224,6 +218,7 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) :
         // Delete -> 선택한 Collection 지우기
         // d이부분 좀 더 해야함
         private fun deleteRequest(position: Int) {
+            Log.d("currentList222", currentList.toString())
             if (position != RecyclerView.NO_POSITION) {
                 val item = currentList[position]
                 CoroutineScope(Dispatchers.IO).launch {
@@ -237,10 +232,14 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) :
                         AppDatabase.getInstance(binding.root.context)?.collectionDao()
                             ?.getAll()
 
+                    Log.d("currentList222", currentList.toString())
                     withContext(Dispatchers.Main) {
                         submitList(collectionList) {
                             Log.d("currentList:::", currentList.toString())
                         }
+                        // 닫기
+                        notifyItemRemoved(position)
+                        notifyItemRangeChanged(position, currentList!!.size)
                     }
                 }
             } else {
@@ -280,7 +279,6 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) :
             if (position != RecyclerView.NO_POSITION) {
                 val item = currentList[position]
                 val cId = item.cId
-                val id = item.id
 
                 // 추가된 Request 다시 조회 후 보여주기
                 CoroutineScope(Dispatchers.IO).launch {
@@ -295,7 +293,8 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) :
                         ChildReqItem(
                             collectionId = cId,
                             type = curType,
-                            title = curTitle
+                            title = curTitle,
+                            reqId = (childRequestItem?.requestList?.size?.inc()) ?: 1
                         )
                     )
 
@@ -319,6 +318,7 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) :
                         )
                         requestItemList.add(
                             ChildReqItem(
+                                reqId = reqItemList.reqId,
                                 collectionId = reqItemList.collectionId,
                                 type = reqItemList.type,
                                 title = reqItemList.title
@@ -328,17 +328,21 @@ class CollectionAdapter(private val listener: ChildReqAdapterListener) :
                     // 구성된 리스트로 사이즈 재조정
                     val size = requestItemList.size
                     AppDatabase.getInstance(binding.root.context)?.collectionDao()
-                        ?.updateRequestCount(size = size, collectionId = cId)
+                            ?.updateRequestCount(size = size, collectionId = cId)
                     // 사이즈 변경 후 재조회해서 submitList에 넣어주기
                     val reCollection =
                         AppDatabase.getInstance(binding.root.context)?.collectionDao()
                             ?.getAll()
 
+                    for(childSubitem in requestItemList){
+                        Log.i("requestItemList :: ", childSubitem.toString())
+                    }
                     // 화면 반영용은 Main 스레드에서 넣어줄 것
                     withContext(Dispatchers.Main) {
                         submitList(reCollection)
                         // cId를 토대로 구한 리스트 이므로 그대로 넣어줘서 갱신하기
                         childReqAdapter.submitList(requestItemList)
+
                     }
                 }
             }

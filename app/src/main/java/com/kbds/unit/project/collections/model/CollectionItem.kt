@@ -17,7 +17,6 @@ data class CollectionItem(
 
 data class CollectionWithRequests(
     @Embedded val collectionItem: CollectionItem,
-
     @Relation(
         parentColumn = "cId",  // CollectionItem의 cId와 연결
         entityColumn = "collectionId"  // RequestItem의 외래 키 (collectionId)

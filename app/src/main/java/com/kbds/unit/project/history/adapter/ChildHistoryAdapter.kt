@@ -8,6 +8,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.kbds.unit.project.collections.model.CollectionItem
 import com.kbds.unit.project.database.AppDatabase
 import com.kbds.unit.project.database.model.HistoryItem
 import com.kbds.unit.project.database.model.RequestItem
@@ -17,10 +18,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class ChildHistoryAdapter(): ListAdapter<HistoryItem, ChildHistoryAdapter.ViewHolder> (diff){
+class ChildHistoryAdapter() : ListAdapter<HistoryItem, ChildHistoryAdapter.ViewHolder>(diff) {
 
-    inner class ViewHolder(private val binding: HistoryChildItemBinding) : RecyclerView.ViewHolder(binding.root){
-        fun bind(item: HistoryItem){
+    inner class ViewHolder(private val binding: HistoryChildItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: HistoryItem) {
             binding.childReqTitle2.text = item.title
             binding.childReqType2.text = item.type
             val position = adapterPosition
@@ -36,47 +38,93 @@ class ChildHistoryAdapter(): ListAdapter<HistoryItem, ChildHistoryAdapter.ViewHo
 
             dialogView.alertBtnSave.setOnClickListener {
                 dialog.dismiss()
-                val text = dialogView.addRequestType.text.toString()
+                val collectionText = dialogView.addCollectionType.text.toString()
                 val reqItem = currentList[position]
-                Log.e("reqItemInChildHistoryAdapter", "TEST : ${reqItem.toString()} text : $text" )
-                if(text != ""){
-                    saveHistoryToCollection(dialogView.addRequestType.text.toString(), reqItem.type, reqItem.url)
+
+                if (collectionText != "") {
+                    saveHistoryToCollection(
+                        dialogView.addCollectionType.text.toString(),
+                        reqItem.title,
+                        reqItem.type,
+                        reqItem.url
+                    )
                 } else {
-                    Toast.makeText(binding.root.context,"컬랙션 이름이 추가되지 않았습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(binding.root.context, "컬랙션 이름이 추가되지 않았습니다.", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
 
+            dialogView.alertBtnCancel.setOnClickListener {
+                dialog.dismiss()
+            }
 
         }
 
-        private fun saveHistoryToCollection(collectionName: String, type: String, url: String) {
+        private fun saveHistoryToCollection(
+            collectionTitle: String,
+            requestTitle: String,
+            type: String,
+            url: String
+        ) {
             CoroutineScope(Dispatchers.IO).launch {
                 // Collection 이름을 찾기 (입력한 값을 가지고 찾기)
-                val findCollectionList = AppDatabase.getInstance(binding.root.context)?.collectionDao()
-                    ?.findTitleInHistory(findTitle = collectionName) ?: emptyList()
-                val findName = findCollectionList.first().title
-                val findCId = findCollectionList.first().cId
+                val findCollectionList =
+                    AppDatabase.getInstance(binding.root.context)?.collectionDao()
+                        ?.findTitleInHistory(findTitle = collectionTitle) ?: emptyList()
 
-                // Collection Name이 있기 떄문에 여기에 그대로 request 형태로 Insert하기
-                if(findName != ""){
-                    /*
-                    1. findName, cId 찾기
-                    2. findName, cId를 토대로 RequestTB에 넣어주면 CollectionId를 토대로 어차피 조회가 되기 때문에 자동으로 Collection 쪽에 Request가 들어갈 예정
-                     */
-                    // 히스토리에서 선택한 것으로 타입, url 따서 insert or Update 진행한다.
-                    AppDatabase.getInstance(binding.root.context)?.requestDao()
-                        ?.insertOrUpdateReqItem(RequestItem(collectionId = findCId, type = type, title = findName, url = url))
+                var findName = ""
+                var findCId = -1
+                if (findCollectionList.isNotEmpty()) {
+                    findName = findCollectionList.first().title
+                    findCId = findCollectionList.first().cId
                 }
-                else {
+                Log.e("findItem", "findName $findName  findCId $findCId")
+
+                // 입력한 컬랙션 이름을 보았을때 테이블에 존재하는 경우라면 해당 CId를 토대로 RequestTB만 update를 진행하면 됨, reqId는 추가로만 넣어주면 됨
+                if (findCId != -1) {
                     AppDatabase.getInstance(binding.root.context)?.requestDao()
-                        ?.insertNewCollection(RequestItem(collectionId = findCId, type = type, title = findName, url = url))
+                        ?.insertOrUpdateReqItem(
+                            RequestItem(
+                                collectionId = findCId,
+                                type = type,
+                                title = requestTitle,
+                                url = url
+                            )
+                        )
+                }
+                // 그러나 컬랙션 테이블에 없는 경우라면 컬랙션 테이블에 추가를 해주고 requestTB에도 추가해야함
+                else {
+                    var size = 0
+                    val getCollection =
+                        AppDatabase.getInstance(binding.root.context)?.collectionDao()?.getAll()
+                            ?: mutableListOf()
+                    size = getCollection.size // 현재 컬렉션의 크기로 정의
+                    // 컬랙션 테이블에 없으니까 입력한 것으로 넣어주기
+                    val collections = CollectionItem(
+                        id = (size).toString().plus("_collection"),
+                        title = collectionTitle,
+                        requestCount = 0
+                    )
+
+                    val requests = mutableListOf<RequestItem>()
+                    requests.add(
+                        RequestItem(
+                            collectionId = -1,
+                            type = type,
+                            title = requestTitle,
+                            url = url
+                        )
+                    )
+                    AppDatabase.getInstance(binding.root.context)?.collectionDao()
+                        ?.insertCollectionWithRequests(collections, requests)
+
                 }
             }
-
         }
     }
+
     companion object {
-        val diff = object: DiffUtil.ItemCallback<HistoryItem>(){
+        val diff = object : DiffUtil.ItemCallback<HistoryItem>() {
             override fun areItemsTheSame(
                 oldItem: HistoryItem,
                 newItem: HistoryItem
@@ -95,7 +143,13 @@ class ChildHistoryAdapter(): ListAdapter<HistoryItem, ChildHistoryAdapter.ViewHo
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(HistoryChildItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        return ViewHolder(
+            HistoryChildItemBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+        )
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {

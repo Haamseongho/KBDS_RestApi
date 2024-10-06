@@ -29,22 +29,12 @@ class ViewPagerAdapter(private val mActivity: MainActivity, private val mainView
         return fragmentList[position]
     }
 
-    fun updateFragmentData(position: Int, data: ChildReqItem) {
-        val fragment = fragmentList[position] as? ApiFragment
-        fragment?.arguments = Bundle().apply {
-            putInt("COLLECTION_ID", data.collectionId)
-            putString("TYPE", data.type)
-            putString("TITLE", data.title)
-            putString("URL", data.url ?: "")
-        }
-        notifyItemChanged(position)
-    }
-    fun getViewPager(): ViewPager2 {
-        return mainViewPager
-    }
 
     fun setDataToFragment(position: Int, bundle: Bundle) {
-        fragmentList[position].arguments = bundle
-        Log.d("haams123123", "bundle: ${bundle.toString()}  fragment : ${fragmentList[position]}")
+        val fragment = fragmentList[position]
+        fragment.arguments = bundle
+        if (fragment is ApiFragment) {
+            fragment.updateData(bundle)  // ApiFragment에 데이터를 업데이트하는 메서드 추가
+        }
     }
 }

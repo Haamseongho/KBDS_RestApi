@@ -1,7 +1,5 @@
 package com.kbds.unit.project.collections
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -11,14 +9,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.kbds.unit.project.MainActivity
-import com.kbds.unit.project.MyFragment
 import com.kbds.unit.project.R
 import com.kbds.unit.project.ViewPagerAdapter
-import com.kbds.unit.project.api.ApiFragment
 import com.kbds.unit.project.collections.adapter.ChildReqAdapterListener
 import com.kbds.unit.project.collections.adapter.CollectionAdapter
 import com.kbds.unit.project.collections.model.ChildReqItem
@@ -161,6 +156,41 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
         // collectionAdapter?.submitList(mutableListOf(CollectionItem("","","",1)))
         alertDialogBox?.dismiss()
     }
+    private fun checkReSize(){
+        CoroutineScope(Dispatchers.IO).launch {
+            // 구성된 리스트로 사이즈 재조정
+            val cIdList = context?.let {
+                AppDatabase.getInstance(it)?.collectionDao()
+                    ?.getAllCId()
+            }
+            Log.e("cIdList", cIdList.toString())
+
+
+            // 사이즈 변경 후 재조회해서 submitList에 넣어주기
+            if (cIdList != null) {
+                for (cId in cIdList){
+                    var requestList = AppDatabase.getInstance(context)?.requestDao()
+                        ?.getSizeFromCollectionId(cId = cId)
+
+                    context?.let {
+                        AppDatabase.getInstance(it)?.collectionDao()
+                            ?.updateRequestCount(size = requestList!!.size, collectionId = cId)
+                    }
+                }
+            }
+            val reCollection =
+                AppDatabase.getInstance(binding.root.context)?.collectionDao()
+                    ?.getAll()
+
+            withContext(Dispatchers.Main){
+                collectionAdapter?.submitList(reCollection)
+            }
+        }
+    }
+    override fun onResume() {
+        super.onResume()
+        checkReSize()
+    }
 
     companion object {
         /**
@@ -183,22 +213,11 @@ class CollectionFragment : Fragment(), ChildReqAdapterListener {
     }
 
     override fun onChildItemClicked(data: ChildReqItem) {// 메서드 호출 여부 확인을 위한 로그
+        Log.d("haams_data", data.toString())
+        // null 뜨지않게 셋팅
+        mActivity?.viewPagerAdapter = mActivity?.let { ViewPagerAdapter(it, requireActivity().findViewById(R.id.mainViewPager)) }
         mActivity?.sendDataToFragment(data, 1)
         Log.d("CollectionFragment", "onChildItemClicked called")
-       // viewPager!!.setCurrentItem(1, true)
-//        val sharedPreferences = binding.root.context.getSharedPreferences("request", Context.MODE_PRIVATE)
-//        val editor = sharedPreferences.edit()
-//        Log.e("editorTest", sharedPreferences.getInt("COLLECTION_ID", 0).toString())
-//        Log.e("editorTest", sharedPreferences.getString("TYPE", "").toString())
-//        Log.e("editorTest", sharedPreferences.getString("TITLE", "").toString())
-//        Log.e("editorTest", sharedPreferences.getString("URL", "").toString())
-//        editor.apply {
-//            putInt("COLLECTION_ID", data.collectionId)
-//            putString("TYPE", data.type)
-//            putString("TITLE", data.title)
-//            putString("URL", data.url ?: "")
-//        }.apply()
-
-        // viewPager!!.setCurrentItem(1, true)
+        viewPager!!.setCurrentItem(1, true)
     }
 }
